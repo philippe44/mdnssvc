@@ -1,0 +1,8 @@
+CFLAGS  ?= -Wall -fPIC -O2 $(OPTS) $(INCLUDE) $(DEFINES)
+LDFLAGS ?= -lgomp -lpthread -lssl -lcrypto -ldl -lm -lrt -lz -L. 
+
+OBJ			= bin/arm
+EXECUTABLE	= bin/tinysvcmdns-arm
+
+include Makefile
+
