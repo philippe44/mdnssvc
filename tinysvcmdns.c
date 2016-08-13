@@ -87,17 +87,20 @@ static void winsock_close(void) {
 #if !defined(WIN32)
 #define INVALID_SOCKET (-1)
 #endif
-static in_addr_t get_localhost(void)
+static in_addr_t get_localhost(char **name)
 {
 #ifdef WIN32
-	char buf[INET_ADDRSTRLEN];
+	char buf[256];
 	struct hostent *h = NULL;
 	struct sockaddr_in LocalAddr;
 
 	memset(&LocalAddr, 0, sizeof(LocalAddr));
 
-	gethostname(buf, INET_ADDRSTRLEN);
+	gethostname(buf, 256);
 	h = gethostbyname(buf);
+
+	if (name) *name = strdup(buf);
+
 	if (h != NULL) {
 		memcpy(&LocalAddr.sin_addr, h->h_addr_list[0], 4);
 		return LocalAddr.sin_addr.s_addr;
@@ -105,6 +108,11 @@ static in_addr_t get_localhost(void)
 	else return INADDR_ANY;
 #elif defined (__APPLE__) || defined(__FreeBSD__)
 	struct ifaddrs *ifap, *ifa;
+
+	if (name) {
+		*name = malloc(256);
+		gethostname(*name, 256);
+	}
 
 	if (getifaddrs(&ifap) != 0) return INADDR_ANY;
 
@@ -139,6 +147,11 @@ static in_addr_t get_localhost(void)
 	int LocalSock;
 	struct sockaddr_in LocalAddr;
 	int j = 0;
+
+	if (name) {
+		*name = malloc(256);
+		gethostname(*name, 256);
+	}
 
 	/* purify */
 	memset(&ifConf,  0, sizeof(ifConf));
@@ -198,7 +211,7 @@ static in_addr_t get_localhost(void)
 
 /*---------------------------------------------------------------------------*/
 static int print_usage(void) {
-	printf("hostname identity type port txt [txt] ... [txt]\n");
+	printf("<identity> <type> <port> <txt> [txt] ... [txt]\n");
 #ifdef WIN32
 	winsock_close();
 #endif
@@ -219,12 +232,16 @@ static in_addr_t get_localhost(void)
 /*---------------------------------------------------------------------------*/
 /*																			 */
 /*---------------------------------------------------------------------------*/
-int main(int argc, char *argv[]) {
-
+#ifdef MDNS_SVC
+int mdns_server(int argc, char *argv[]) {
+#else
+int main(int argc, char *argv[]) {
+#endif
 	char type[255];
 	int port;
 	const char **txt;
 	struct in_addr host;
+	char *hostname;
 
 	signal(SIGINT, sighandler);
 	signal(SIGTERM, sighandler);
@@ -242,32 +259,34 @@ static in_addr_t get_localhost(void)
 	winsock_init();
 #endif
 
-	if (argc < 6) return print_usage();
+	if (argc < 5) return print_usage();
 
-	port = atoi(argv[4]);
+	port = atoi(argv[3]);
 
-	host.s_addr = get_localhost();
+	host.s_addr = get_localhost(&hostname);
 	if (host.s_addr == INADDR_ANY) {
 		printf("cannot find host address\n");
+		free(hostname);
 		return print_usage();
 	}
 
 	svr = mdnsd_start(host);
 	if (svr == NULL) return print_usage();
 
-	txt = malloc((argc - 5 + 1) * sizeof(char**));
-	memcpy(txt, argv + 5, (argc - 5) * sizeof(char**));
-	txt[argc + 5] = NULL;
+	txt = malloc((argc - 4 + 1) * sizeof(char**));
+	memcpy(txt, argv + 4, (argc - 4) * sizeof(char**));
+	txt[argc + 4] = NULL;
 
-	mdnsd_set_hostname(svr, argv[1], host);
+	mdnsd_set_hostname(svr, hostname, host);
+	free(hostname);
 
-	sprintf(type, "%s.local", argv[3]);
+	sprintf(type, "%s.local", argv[2]);
 
-	printf("server   : %s\nidentity : %s\ntype     : %s\n"
+	printf("host     : %s\nidentity : %s\ntype     : %s\n"
 		   "ip       : %s\nport     : %u\n",
-			argv[1], argv[2], type, inet_ntoa(host), port);
+			hostname, argv[1], type, inet_ntoa(host), port);
 
-	svc = mdnsd_register_svc(svr, argv[2], type, port, NULL, txt);
+	svc = mdnsd_register_svc(svr, argv[1], type, port, NULL, txt);
 	mdns_service_destroy(svc);
 
 #ifdef WIN32
