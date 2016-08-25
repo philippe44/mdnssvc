@@ -280,7 +280,6 @@ int main(int argc, char *argv[]) {
 	txt[argc + 4] = NULL;
 
 	mdnsd_set_hostname(svr, hostname, host);
-	free(hostname);
 
 	sprintf(type, "%s.local", argv[2]);
 
@@ -288,8 +287,11 @@ int main(int argc, char *argv[]) {
 		   "ip       : %s\nport     : %u\n",
 			hostname, argv[1], type, inet_ntoa(host), port);
 
+	free(hostname);
+
 	svc = mdnsd_register_svc(svr, argv[1], type, port, NULL, txt);
 	mdns_service_destroy(svc);
+
 
 #ifdef WIN32
 	Sleep(INFINITE);
