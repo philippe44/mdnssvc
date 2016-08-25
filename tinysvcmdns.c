@@ -264,6 +264,8 @@ int main(int argc, char *argv[]) {
 	port = atoi(argv[3]);
 
 	host.s_addr = get_localhost(&hostname);
+	hostname = realloc(hostname, strlen(hostname) + strlen(".local"));
+	strcat(hostname, ".local");
 	if (host.s_addr == INADDR_ANY) {
 		printf("cannot find host address\n");
 		free(hostname);
