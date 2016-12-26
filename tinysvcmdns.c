@@ -36,13 +36,16 @@
 #include <in6addr.h>
 #include <ws2tcpip.h>
 typedef uint32_t in_addr_t;
-#elif defined (linux) || defined (__FreeBSD__)
+#elif defined (linux) || defined (__FreeBSD__) || defined(sun)
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#if defined (sun)
+#include <sys/sockio.h>
+#endif
 #if defined (__FreeBSD__)
 #include <ifaddrs.h>
 #include <net/if_dl.h>
