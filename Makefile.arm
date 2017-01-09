@@ -1,5 +1,6 @@
+CC=armv5te-cross-linux-gnueabi-gcc
 CFLAGS  ?= -Wall -fPIC -O2 $(OPTS) $(INCLUDE) $(DEFINES)
-LDFLAGS ?= -lgomp -lpthread -lssl -lcrypto -ldl -lm -lrt -lz -L. 
+LDFLAGS ?= -s -lpthread -lm -lrt -L. 
 
 OBJ			= bin/arm
 EXECUTABLE	= bin/tinysvcmdns-arm
