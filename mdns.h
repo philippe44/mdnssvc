@@ -46,6 +46,12 @@
 #define DECL_MALLOC_ZERO_STRUCT(x, type) \
 	struct type * MALLOC_ZERO_STRUCT(x, type)
 
+#define DECL_STRUCT(x, type) \
+	struct type * x;
+
+#define DEFAULT_TTL_FOR_RECORD_WITH_HOSTNAME 120
+#define DEFAULT_TTL 4500
+
 #ifndef NDEBUG
   #define DEBUG_PRINTF(...) printf(__VA_ARGS__)
 #else

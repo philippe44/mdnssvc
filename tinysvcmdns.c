@@ -280,7 +280,7 @@ int main(int argc, char *argv[]) {
 
 	txt = malloc((argc - 4 + 1) * sizeof(char**));
 	memcpy(txt, argv + 4, (argc - 4) * sizeof(char**));
-	txt[argc + 4] = NULL;
+	txt[argc - 4] = NULL;
 
 	mdnsd_set_hostname(svr, hostname, host);
 

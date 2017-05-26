@@ -41,9 +41,6 @@
 #endif
 
 
-#define DEFAULT_TTL		120
-
-
 struct name_comp {
 	uint8_t *label;	// label
 	size_t pos;		// position in msg
@@ -384,6 +381,7 @@ struct rr_entry *rr_create_a(uint8_t *name, struct in_addr addr) {
 	DECL_MALLOC_ZERO_STRUCT(rr, rr_entry);
 	FILL_RR_ENTRY(rr, name, RR_A);
 	rr->data.A.addr = addr.s_addr;
+	rr->ttl = DEFAULT_TTL_FOR_RECORD_WITH_HOSTNAME; // 120 seconds -- see RFC 6762 Section 10
 	return rr;
 }
 
@@ -391,6 +389,7 @@ struct rr_entry *rr_create_aaaa(uint8_t *name, struct in6_addr *addr) {
 	DECL_MALLOC_ZERO_STRUCT(rr, rr_entry);
 	FILL_RR_ENTRY(rr, name, RR_AAAA);
 	rr->data.AAAA.addr = addr;
+	rr->ttl = DEFAULT_TTL_FOR_RECORD_WITH_HOSTNAME; // 120 seconds -- see RFC 6762 Section 10
 	return rr;
 }
 
@@ -417,7 +416,7 @@ struct rr_entry *rr_create(uint8_t *name, enum rr_type type) {
 }
 
 void rr_set_nsec(struct rr_entry *rr_nsec, enum rr_type type) {
-	assert(rr_nsec->type = RR_NSEC);
+	assert(rr_nsec->type == RR_NSEC);
 	assert((type / 8) < sizeof(rr_nsec->data.NSEC.bitmap));
 
 	rr_nsec->data.NSEC.bitmap[ type / 8 ] = 1 << (7 - (type % 8));
@@ -788,7 +787,7 @@ struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len) {
 
 // encodes a name (label) into a packet using the name compression scheme
 // encoded names will be added to the compression list for subsequent use
-static size_t mdns_encode_name(uint8_t *pkt_buf, size_t pkt_len, size_t off, 
+static size_t mdns_encode_name(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 		const uint8_t *name, struct name_comp *comp) {
 	struct name_comp *c, *c_tail = NULL;
 	uint8_t *p = pkt_buf + off;
@@ -798,7 +797,7 @@ static size_t mdns_encode_name(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 		while (*name) {
 			int segment_len;
 			// cache the name for subsequent compression
-			DECL_MALLOC_ZERO_STRUCT(new_c, name_comp);
+			DECL_STRUCT(new_c, name_comp);
 
 			// find match for compression
 			for (c = comp; c; c = c->next) {
@@ -814,6 +813,7 @@ static size_t mdns_encode_name(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 			// copy this segment
 			segment_len = *name + 1;
 			strncpy((char *) p, (char *) name, segment_len);
+			MALLOC_ZERO_STRUCT(new_c, name_comp);
 
 			new_c->label = (uint8_t *) name;
 			new_c->pos = p - pkt_buf;
