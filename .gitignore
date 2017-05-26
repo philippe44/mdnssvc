@@ -54,4 +54,5 @@ Win32/
 *.res
 *.map
 *.i*
+build
 
