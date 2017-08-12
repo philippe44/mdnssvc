@@ -176,7 +176,10 @@ void rr_group_destroy(struct rr_group *group);
 struct rr_group *rr_group_find(struct rr_group *g, uint8_t *name);
 struct rr_entry *rr_entry_find(struct rr_list *rr_list, uint8_t *name, uint16_t type);
 struct rr_entry *rr_entry_match(struct rr_list *rr_list, struct rr_entry *entry);
+void rr_entry_destroy(struct rr_entry *rr);
+struct rr_entry *rr_entry_remove(struct rr_group *group, struct rr_entry *entry, enum rr_type type);
 void rr_group_add(struct rr_group **group, struct rr_entry *rr);
+void rr_group_clean(struct rr_group **head);
 
 int rr_list_count(struct rr_list *rr);
 int rr_list_append(struct rr_list **rr_head, struct rr_entry *rr);

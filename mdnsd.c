@@ -82,6 +82,7 @@ struct mdnsd {
 	struct rr_group *group;
 	struct rr_list *announce;
 	struct rr_list *services;
+	struct rr_list *leave;
 	uint8_t *hostname;
 };
 
@@ -227,7 +228,7 @@ static void add_related_rr(struct mdnsd *svr, struct rr_list *list, struct mdns_
 		switch (ans->type) {
 			case RR_PTR:
 				// target host A, AAAA records
-				reply->num_add_rr += populate_answers(svr, &reply->rr_add, 
+				reply->num_add_rr += populate_answers(svr, &reply->rr_add,
 										MDNS_RR_GET_PTR_NAME(ans), RR_ANY);
 				break;
 
@@ -510,6 +511,36 @@ static void main_loop(struct mdnsd *svr) {
 				send_packet(svr->sockfd, pkt_buffer, replylen);
 			}
 		}
+
+		// send out bye-bye for terminating services
+		while (1) {
+			struct rr_entry *leave_e = NULL;
+			char *namestr;
+
+			pthread_mutex_lock(&svr->data_lock);
+			if (svr->leave)
+				leave_e = rr_list_remove(&svr->leave, svr->leave->e);
+  			pthread_mutex_unlock(&svr->data_lock);
+
+			if (!leave_e)
+				break;
+
+			namestr = nlabel_to_str(leave_e->name);
+			DEBUG_PRINTF("sending bye-bye for %s\n", namestr);
+			free(namestr);
+
+			leave_e->ttl = 0;
+			mdns_reply->num_ans_rr += rr_list_append(&mdns_reply->rr_ans, leave_e);
+
+			// send out packet
+			if (mdns_reply->num_ans_rr > 0) {
+				size_t replylen = mdns_encode_pkt(mdns_reply, pkt_buffer, PACKET_SIZE);
+				send_packet(svr->sockfd, pkt_buffer, replylen);
+			}
+
+			rr_entry_destroy(leave_e);
+			rr_entry_destroy(leave_e->data.PTR.entry);
+		}
 	}
 
 	// main thread terminating. send out "goodbye packets" for services
@@ -658,6 +689,50 @@ struct mdns_service *mdnsd_register_svc(struct mdnsd *svr, const char *instance_
 	return service;
 }
 
+void mdns_service_remove(struct mdnsd *svr, struct mdns_service *svc) {
+	struct rr_list *rr;
+
+	assert(srv != NULL && svc != NULL);
+
+	// modify lists here
+	pthread_mutex_lock(&svr->data_lock);
+
+	for (rr = svc->entries; rr; rr = rr->next) {
+		struct rr_group *g;
+		struct rr_entry *ptr_e;
+
+		// remove entry from groups and destroy entries that are not PTR
+		if ((g = rr_group_find(svr->group, rr->e->name)) != NULL) {
+			rr_list_remove(&g->rr, rr->e);
+		}
+
+		// remove PTR and BPTR related to this SVC
+		if ((ptr_e = rr_entry_remove(svr->group, rr->e, RR_PTR)) != NULL) {
+			// remove PTR from announce and services
+			rr_list_remove(&svr->announce, rr->e);
+			rr_list_remove(&svr->services, rr->e);
+
+			// find BPTR and remove it from groups
+			rr_entry_remove(svr->group, ptr_e, RR_PTR);
+
+			// add PTR to list of announces for leaving
+			rr_list_append(&svr->leave, ptr_e);
+		} else {
+			// destroy entries not needed for sending "leave" packet
+			rr_entry_destroy(rr->e);
+        }
+	}
+
+	// remove all empty groups
+	rr_group_clean(&svr->group);
+
+	// destroy this service entries
+	rr_list_destroy(svc->entries, 0);
+	free(svc);
+
+	pthread_mutex_unlock(&svr->data_lock);
+}
+
 void mdns_service_destroy(struct mdns_service *srv) {
 	assert(srv != NULL);
 	rr_list_destroy(srv->entries, 0);
@@ -720,6 +795,7 @@ void mdnsd_stop(struct mdnsd *s) {
 	rr_group_destroy(s->group);
 	rr_list_destroy(s->announce, 0);
 	rr_list_destroy(s->services, 0);
+	rr_list_destroy(s->leave, 0);
 
 	if (s->hostname)
 		free(s->hostname);

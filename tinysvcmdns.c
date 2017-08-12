@@ -293,6 +293,7 @@ int main(int argc, char *argv[]) {
 	free(hostname);
 
 	svc = mdnsd_register_svc(svr, argv[1], type, port, NULL, txt);
+	// or, to remove service call: mdns_service_remove(svr, svc);
 	mdns_service_destroy(svc);
 
 
@@ -310,4 +311,4 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
-
+

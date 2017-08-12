@@ -324,6 +324,37 @@ int rr_list_count(struct rr_list *rr) {
 	return i;
 }
 
+struct rr_entry *rr_entry_remove(struct rr_group *group, struct rr_entry *entry, enum rr_type type) {
+	struct rr_group *g;
+
+	for (g = group; g; g = g->next) {
+		struct rr_list *lrr = g->rr, *prr= NULL;
+		for (; lrr; lrr = lrr->next) {
+			if (lrr->e->type == type) {
+				switch (type) {
+				case RR_PTR:
+					if (lrr->e->data.PTR.entry == entry) {
+						struct rr_entry *e = lrr->e;
+						if (prr == NULL) {
+							g->rr = lrr->next;
+						} else {
+							prr->next = lrr->next;
+						}
+						free(lrr);
+						return e;
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			prr = lrr;
+		}
+	}
+
+	return NULL;
+}
+
 struct rr_entry *rr_list_remove(struct rr_list **rr_head, struct rr_entry *rr) {
 	struct rr_list *le = *rr_head, *pe = NULL;
 	for (; le; le = le->next) {
@@ -341,6 +372,27 @@ struct rr_entry *rr_list_remove(struct rr_list **rr_head, struct rr_entry *rr) {
 		pe = le;
 	}
 	return NULL;
+}
+
+void rr_group_clean(struct rr_group **head) {
+	struct rr_group *le = *head, *pe = NULL;
+
+	while (le) {
+		if (le->rr == NULL) {
+			if (pe == NULL) {
+				*head = le->next;
+				 free(le);
+				 le = *head;
+			 } else {
+				pe->next = le->next;
+				free(le);
+				le = pe->next;
+			 }
+		} else {
+			pe = le;
+			le = le->next;
+        }
+	}
 }
 
 // appends an rr_entry to an RR list
