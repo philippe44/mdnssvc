@@ -777,6 +777,8 @@ struct mdnsd *mdnsd_start(struct in_addr host) {
 void mdnsd_stop(struct mdnsd *s) {
 	struct timeval tv;
 
+	if (!s) return;
+
 	tv.tv_sec = 0;
 	tv.tv_usec = 500*1000;
 
