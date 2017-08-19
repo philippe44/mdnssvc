@@ -709,8 +709,8 @@ void mdns_service_remove(struct mdnsd *svr, struct mdns_service *svc) {
 		// remove PTR and BPTR related to this SVC
 		if ((ptr_e = rr_entry_remove(svr->group, rr->e, RR_PTR)) != NULL) {
 			// remove PTR from announce and services
-			rr_list_remove(&svr->announce, rr->e);
-			rr_list_remove(&svr->services, rr->e);
+			rr_list_remove(&svr->announce, ptr_e);
+			rr_list_remove(&svr->services, ptr_e);
 
 			// find BPTR and remove it from groups
 			rr_entry_remove(svr->group, ptr_e, RR_PTR);
