@@ -36,6 +36,7 @@
 #include <in6addr.h>
 #include <ws2tcpip.h>
 typedef uint32_t in_addr_t;
+#define strcasecmp stricmp
 #elif defined (linux) || defined (__FreeBSD__) || defined (sun)
 #include <unistd.h>
 #include <sys/socket.h>
@@ -43,6 +44,7 @@ typedef uint32_t in_addr_t;
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <strings.h>
 #if defined (__FreeBSD__) || defined (sun)
 #include <ifaddrs.h>
 #include <net/if_dl.h>
@@ -214,7 +216,7 @@ static in_addr_t get_localhost(char **name)
 
 /*---------------------------------------------------------------------------*/
 static int print_usage(void) {
-	printf("<identity> <type> <port> <txt> [txt] ... [txt]\n");
+	printf("[host <ip>] <identity> <type> <port> <txt> [txt] ... [txt]\n");
 #ifdef WIN32
 	winsock_close();
 #endif
@@ -245,6 +247,7 @@ int main(int argc, char *argv[]) {
 	const char **txt;
 	struct in_addr host;
 	char *hostname;
+	int opt = 0;
 
 	signal(SIGINT, sighandler);
 	signal(SIGTERM, sighandler);
@@ -262,37 +265,43 @@ int main(int argc, char *argv[]) {
 	winsock_init();
 #endif
 
-	if (argc < 5) return print_usage();
-
-	port = atoi(argv[3]);
-
 	host.s_addr = get_localhost(&hostname);
 	hostname = realloc(hostname, strlen(hostname) + strlen(".local") + 1);
 	strcat(hostname, ".local");
+
+	if (!strcasecmp(argv[1], "host")) {
+		host.s_addr = inet_addr(argv[2]);
+		opt = 2;
+	}
+
 	if (host.s_addr == INADDR_ANY) {
-		printf("cannot find host address\n");
+		printf("cannot find host address\n");
 		free(hostname);
 		return print_usage();
 	}
 
-	svr = mdnsd_start(host);
+	if (argc < 5+opt) return print_usage();
+
+	port = atoi(argv[3+opt]);
+
+	svr = mdnsd_start(host);
 	if (svr == NULL) return print_usage();
 
-	txt = malloc((argc - 4 + 1) * sizeof(char**));
-	memcpy(txt, argv + 4, (argc - 4) * sizeof(char**));
-	txt[argc - 4] = NULL;
+	txt = malloc((argc - 4 + 1 - opt) * sizeof(char**));
+	memcpy(txt, argv + 4 + opt, (argc - 4 - opt) * sizeof(char**));
+	txt[argc - 4 - opt] = NULL;
 
 	mdnsd_set_hostname(svr, hostname, host);
 
-	sprintf(type, "%s.local", argv[2]);
+	sprintf(type, "%s.local", argv[2 + opt]);
 
 	printf("host     : %s\nidentity : %s\ntype     : %s\n"
 		   "ip       : %s\nport     : %u\n",
-			hostname, argv[1], type, inet_ntoa(host), port);
+			hostname, argv[1 + opt], type, inet_ntoa(host), port);
 
 	free(hostname);
 
-	svc = mdnsd_register_svc(svr, argv[1], type, port, NULL, txt);
+	svc = mdnsd_register_svc(svr, argv[1 + opt], type, port, NULL, txt);
 	// or, to remove service call: mdns_service_remove(svr, svc);
 	mdns_service_destroy(svc);
 
