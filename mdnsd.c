@@ -538,8 +538,8 @@ static void main_loop(struct mdnsd *svr) {
 				send_packet(svr->sockfd, pkt_buffer, replylen);
 			}
 
-			rr_entry_destroy(leave_e);
 			rr_entry_destroy(leave_e->data.PTR.entry);
+			rr_entry_destroy(leave_e);
 		}
 	}
 
