@@ -520,10 +520,12 @@ static void main_loop(struct mdnsd *svr) {
 			pthread_mutex_lock(&svr->data_lock);
 			if (svr->leave)
 				leave_e = rr_list_remove(&svr->leave, svr->leave->e);
-  			pthread_mutex_unlock(&svr->data_lock);
+			pthread_mutex_unlock(&svr->data_lock);
 
 			if (!leave_e)
 				break;
+
+			mdns_init_reply(mdns_reply, 0);
 
 			namestr = nlabel_to_str(leave_e->name);
 			DEBUG_PRINTF("sending bye-bye for %s\n", namestr);
@@ -563,6 +565,7 @@ static void main_loop(struct mdnsd *svr) {
 
 	// destroy packet
 	mdns_init_reply(mdns_reply, 0);
+
 	free(mdns_reply);
 
 	free(pkt_buffer);
@@ -708,19 +711,22 @@ void mdns_service_remove(struct mdnsd *svr, struct mdns_service *svc) {
 
 		// remove PTR and BPTR related to this SVC
 		if ((ptr_e = rr_entry_remove(svr->group, rr->e, RR_PTR)) != NULL) {
+			struct rr_entry *bptr_e;
+
 			// remove PTR from announce and services
 			rr_list_remove(&svr->announce, ptr_e);
 			rr_list_remove(&svr->services, ptr_e);
 
 			// find BPTR and remove it from groups
-			rr_entry_remove(svr->group, ptr_e, RR_PTR);
+			bptr_e = rr_entry_remove(svr->group, ptr_e, RR_PTR);
+			rr_entry_destroy(bptr_e);
 
 			// add PTR to list of announces for leaving
 			rr_list_append(&svr->leave, ptr_e);
 		} else {
 			// destroy entries not needed for sending "leave" packet
 			rr_entry_destroy(rr->e);
-        }
+		}
 	}
 
 	// remove all empty groups

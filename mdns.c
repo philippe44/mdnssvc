@@ -272,7 +272,7 @@ void rr_entry_destroy(struct rr_entry *rr) {
 	// check rr_type and free data elements
 	switch (rr->type) {
 		case RR_PTR:
-			if (rr->data.PTR.name) 
+			if (rr->data.PTR.name)
 				free(rr->data.PTR.name);
 			// don't free entry
 			break;
@@ -281,7 +281,7 @@ void rr_entry_destroy(struct rr_entry *rr) {
 			txt_rec = &rr->data.TXT;
 			while (txt_rec) {
 				struct rr_data_txt *next = txt_rec->next;
-				if (txt_rec->txt) 
+				if (txt_rec->txt)
 					free(txt_rec->txt);
 
 				// only free() if it wasn't part of the struct
@@ -296,6 +296,11 @@ void rr_entry_destroy(struct rr_entry *rr) {
 			if (rr->data.SRV.target)
 				free(rr->data.SRV.target);
 			break;
+
+		case RR_AAAA:
+			if (rr->data.AAAA.addr)
+				free(rr->data.AAAA.addr);
+        	break;
 
 		default:
 			// nothing to free
@@ -379,6 +384,7 @@ void rr_group_clean(struct rr_group **head) {
 
 	while (le) {
 		if (le->rr == NULL) {
+			free(le->name);
 			if (pe == NULL) {
 				*head = le->next;
 				 free(le);
@@ -760,7 +766,7 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 				}
 				p += txt_rec->txt[0] + 1;
 
-				if (p >= e) 
+				if (p >= e)
 					break;
 
 				// allocate another record
