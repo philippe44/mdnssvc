@@ -123,7 +123,7 @@ static int create_recv_sock(uint32_t host) {
 		return r;
 	}
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__FreeBSD__)
 	if ((r = setsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, sizeof(on))) < 0) {
 		log_message(LOG_ERR, "recv setsockopt(SO_REUSEPORT): %m");
 	  }
@@ -695,7 +695,7 @@ struct mdns_service *mdnsd_register_svc(struct mdnsd *svr, const char *instance_
 void mdns_service_remove(struct mdnsd *svr, struct mdns_service *svc) {
 	struct rr_list *rr;
 
-	assert(srv != NULL && svc != NULL);
+	assert(svr != NULL && svc != NULL);
 
 	// modify lists here
 	pthread_mutex_lock(&svr->data_lock);
