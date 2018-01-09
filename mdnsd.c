@@ -109,6 +109,7 @@ static int create_recv_sock(uint32_t host) {
 	int sd = socket(AF_INET, SOCK_DGRAM, 0);
 	int r = -1;
 	int on = 1;
+	char onChar = 1;
 	struct sockaddr_in serveraddr;
 	struct ip_mreq mreq;
 	unsigned char ttl = 255;
@@ -159,7 +160,7 @@ static int create_recv_sock(uint32_t host) {
 	}
 
 	// enable loopback in case someone else needs the data
-	if ((r = setsockopt(sd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *) &on, sizeof(on))) < 0) {
+	if ((r = setsockopt(sd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *) &onChar, sizeof(onChar))) < 0) {
 		log_message(LOG_ERR, "recv setsockopt(IP_MULTICAST_LOOP): %m");
 		return r;
 	}
