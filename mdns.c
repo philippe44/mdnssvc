@@ -456,6 +456,7 @@ struct rr_entry *rr_create_srv(uint8_t *name, uint16_t port, uint8_t *target) {
 	FILL_RR_ENTRY(rr, name, RR_SRV);
 	rr->data.SRV.port = port;
 	rr->data.SRV.target = target;
+	rr->ttl = DEFAULT_TTL_FOR_RECORD_WITH_HOSTNAME; // 120 seconds -- see RFC 6762 Section 10
 	return rr;
 }
 
@@ -464,6 +465,7 @@ struct rr_entry *rr_create_ptr(uint8_t *name, struct rr_entry *d_rr) {
 	FILL_RR_ENTRY(rr, name, RR_PTR);
 	rr->cache_flush = 0;	// PTRs shouldn't have their cache flush bit set
 	rr->data.PTR.entry = d_rr;
+	rr->ttl = DEFAULT_TTL_FOR_RECORD_WITH_HOSTNAME; // 120 seconds -- see RFC 6762 Section 10
 	return rr;
 }
 
