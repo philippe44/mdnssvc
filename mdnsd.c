@@ -124,7 +124,7 @@ static int create_recv_sock(uint32_t host) {
 		return r;
 	}
 
-#if defined(__APPLE__) || defined(__FreeBSD__)
+#if !defined(WIN32)
 	if ((r = setsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, sizeof(on))) < 0) {
 		log_message(LOG_ERR, "recv setsockopt(SO_REUSEPORT): %m");
 	  }
