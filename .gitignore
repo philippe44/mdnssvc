@@ -53,6 +53,6 @@ Win32/
 *.tds
 *.res
 *.map
-*.i*
+*.il*
 build
 
