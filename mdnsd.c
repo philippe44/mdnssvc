@@ -112,6 +112,7 @@ static int create_recv_sock(uint32_t host) {
 	char onChar = 1;
 	struct sockaddr_in serveraddr;
 	struct ip_mreq mreq;
+	socklen_t addrlen;
 	unsigned char ttl = 255;
 
 	if (sd < 0) {
@@ -125,9 +126,12 @@ static int create_recv_sock(uint32_t host) {
 	}
 
 #if !defined(WIN32)
+  if (!getsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, &addrlen)) {
 	if ((r = setsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, sizeof(on))) < 0) {
-		log_message(LOG_ERR, "recv setsockopt(SO_REUSEPORT): %m");
-	  }
+		log_message(LOG_ERR, "recv setsockopt(SO_REUSEPORT): %m", r);
+	}
+  }
+  on = 1;
 #endif
 
 	/* bind to an address */
