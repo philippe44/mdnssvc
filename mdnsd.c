@@ -127,11 +127,11 @@ static int create_recv_sock(uint32_t host) {
 
 #if !defined(WIN32)
   if (!getsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, &addrlen)) {
+    on = 1;
 	if ((r = setsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, sizeof(on))) < 0) {
 		log_message(LOG_ERR, "recv setsockopt(SO_REUSEPORT): %m", r);
 	}
   }
-  on = 1;
 #endif
 
 	/* bind to an address */
@@ -171,6 +171,7 @@ static int create_recv_sock(uint32_t host) {
 
 
 #ifdef IP_PKTINFO
+	on = 1;
 	if ((r = setsockopt(sd, SOL_IP, IP_PKTINFO, (char *) &on, sizeof(on))) < 0) {
 		log_message(LOG_ERR, "recv setsockopt(IP_PKTINFO): %m");
 		return r;
