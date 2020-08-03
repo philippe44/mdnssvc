@@ -647,13 +647,11 @@ void mdns_pkt_destroy(struct mdns_pkt *p) {
 // parse the MDNS questions section
 // stores the parsed data in the given mdns_pkt struct
 static size_t mdns_parse_qn(uint8_t *pkt_buf, size_t pkt_len, size_t off, 
-		struct mdns_pkt *pkt) {
+		struct rr_list **list) {
 	const uint8_t *p = pkt_buf + off;
 	struct rr_entry *rr;
 	uint8_t *name;
    
-	assert(pkt != NULL);
-
 	rr = malloc(sizeof(struct rr_entry)); 
 	memset(rr, 0, sizeof(struct rr_entry));
 
@@ -668,7 +666,7 @@ static size_t mdns_parse_qn(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 	rr->rr_class = mdns_read_u16(p) & ~0x80;
 	p += sizeof(uint16_t);
 
-	rr_list_append(&pkt->rr_qn, rr);
+	rr_list_append(list, rr);
 	
 	return p - (pkt_buf + off);
 }
@@ -676,7 +674,7 @@ static size_t mdns_parse_qn(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 // parse the MDNS RR section
 // stores the parsed data in the given mdns_pkt struct
 static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off, 
-		struct mdns_pkt *pkt) {
+		struct rr_list **list) {
 	const uint8_t *p = pkt_buf + off;
 	const uint8_t *e = pkt_buf + pkt_len;
 	struct rr_entry *rr;
@@ -685,10 +683,10 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 	struct rr_data_txt *txt_rec;
 	int parse_error = 0;
 
-	assert(pkt != NULL);
-
-	if (off > pkt_len)
+	if (off > pkt_len) {
+		DEBUG_PRINTF("error length %ld %ld\n", off, pkt_len);
 		return 0;
+	}
 
 	rr = malloc(sizeof(struct rr_entry)); 
 	memset(rr, 0, sizeof(struct rr_entry));
@@ -710,6 +708,13 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 	// RR data
 	rr_data_len = mdns_read_u16(p);
 	p += sizeof(uint16_t);
+
+	if (rr_data_len == 0)
+	{
+		DEBUG_PRINTF("no data %ld\n", p - (pkt_buf + off));
+		rr_list_append(list, rr);
+		return p - (pkt_buf + off);
+	}
 
 	if (p + rr_data_len > e) {
 		DEBUG_PRINTF("rr_data_len goes beyond packet buffer: %zu > %zu\n", rr_data_len, e - p);
@@ -796,7 +801,7 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 		return 0;
 	}
 
-	rr_list_append(&pkt->rr_ans, rr);
+	rr_list_append(list, rr);
 	
 	return p - (pkt_buf + off);
 }
@@ -825,7 +830,7 @@ struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len) {
 
 	// parse questions
 	for (i = 0; i < pkt->num_qn; i++) {
-		size_t l = mdns_parse_qn(pkt_buf, pkt_len, off, pkt);
+		size_t l = mdns_parse_qn(pkt_buf, pkt_len, off, &pkt->rr_qn);
 		if (! l) {
 			DEBUG_PRINTF("error parsing question #%d\n", i);
 			mdns_pkt_destroy(pkt);
@@ -837,7 +842,7 @@ struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len) {
 
 	// parse answer RRs
 	for (i = 0; i < pkt->num_ans_rr; i++) {
-		size_t l = mdns_parse_rr(pkt_buf, pkt_len, off, pkt);
+		size_t l = mdns_parse_rr(pkt_buf, pkt_len, off, &pkt->rr_ans);
 		if (! l) {
 			DEBUG_PRINTF("error parsing answer #%d\n", i);
 			mdns_pkt_destroy(pkt);
