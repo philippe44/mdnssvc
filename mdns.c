@@ -601,14 +601,13 @@ uint32_t mdns_read_u32(const uint8_t *ptr) {
 			((ptr[3] & 0xFF) <<  0);
 }
 
-// initialize the packet for reply
 // clears the packet of list structures but not its list items
-void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id) {
+void mdns_init_pkt(struct mdns_pkt *pkt, uint16_t id) {
 	// copy transaction ID
 	pkt->id = id;
 
-	// response flags
-	pkt->flags = MDNS_FLAG_RESP | MDNS_FLAG_AA;
+	// question flags
+	pkt->flags = 0;
 
 	rr_list_destroy(pkt->rr_qn,   0);
 	rr_list_destroy(pkt->rr_ans,  0);
@@ -624,6 +623,14 @@ void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id) {
 	pkt->num_ans_rr = 0;
 	pkt->num_auth_rr = 0;
 	pkt->num_add_rr = 0;
+}
+
+// initialize the packet for reply
+void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id) {
+	mdns_init_pkt(pkt, id);
+
+	// response flags
+	pkt->flags = MDNS_FLAG_RESP | MDNS_FLAG_AA;
 }
 
 // destroys an mdns_pkt struct, including its contents
