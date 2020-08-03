@@ -982,10 +982,12 @@ static size_t mdns_encode_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 			break;
 
 		case RR_PTR:
-			label = rr->data.PTR.name ? 
-					rr->data.PTR.name : 
-					rr->data.PTR.entry->name;
-			p += mdns_encode_name(pkt_buf, pkt_len, p - pkt_buf, label, comp);
+			if (rr->data.PTR.name != NULL || rr->data.PTR.entry != NULL) {
+				label = rr->data.PTR.name ? 
+						rr->data.PTR.name : 
+						rr->data.PTR.entry->name;
+				p += mdns_encode_name(pkt_buf, pkt_len, p - pkt_buf, label, comp);
+			}
 			break;
 
 		case RR_TXT:
