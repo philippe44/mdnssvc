@@ -864,7 +864,29 @@ struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len) {
 		off += l;
 	}
 
-	// TODO: parse the authority and additional RR sections
+	// parse authority RRs
+	for (i = 0; i < pkt->num_auth_rr; i++) {
+		size_t l = mdns_parse_rr(pkt_buf, pkt_len, off, &pkt->rr_auth);
+		if (! l) {
+			DEBUG_PRINTF("error parsing authority #%d\n", i);
+			mdns_pkt_destroy(pkt);
+			return NULL;
+		}
+
+		off += l;
+	}
+
+	// parse additional RRs
+	for (i = 0; i < pkt->num_add_rr; i++) {
+		size_t l = mdns_parse_rr(pkt_buf, pkt_len, off, &pkt->rr_add);
+		if (! l) {
+			DEBUG_PRINTF("error parsing additional #%d\n", i);
+			mdns_pkt_destroy(pkt);
+			return NULL;
+		}
+
+		off += l;
+	}
 
 	return pkt;
 }
