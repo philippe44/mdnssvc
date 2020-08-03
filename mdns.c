@@ -1044,16 +1044,13 @@ size_t mdns_encode_pkt(struct mdns_pkt *answer, uint8_t *pkt_buf, size_t pkt_len
 	//uint8_t *e = pkt_buf + pkt_len;
 	size_t off;
 	int i;
-	struct rr_list *rr_set[3];
+	struct rr_list *rr_set[4];
 
 	assert(answer != NULL);
 	assert(pkt_len >= 12);
 
 	if (p == NULL)
 		return -1;
-
-	// this is an Answer - number of qns should be zero
-	assert(answer->num_qn == 0);
 
 	p = mdns_write_u16(p, answer->id);
 	p = mdns_write_u16(p, answer->flags);
@@ -1075,9 +1072,10 @@ size_t mdns_encode_pkt(struct mdns_pkt *answer, uint8_t *pkt_buf, size_t pkt_len
 	comp->pos = 0;
 
 	// skip encoding of qn
-	rr_set[0] =	answer->rr_ans;
-	rr_set[1] = answer->rr_auth;
-	rr_set[2] =	answer->rr_add;
+	rr_set[0] =	answer->rr_qn;
+	rr_set[1] =	answer->rr_ans;
+	rr_set[2] = answer->rr_auth;
+	rr_set[3] =	answer->rr_add;
 
 	// encode answer, authority and additional RRs
 	for (i = 0; i < sizeof(rr_set) / sizeof(rr_set[0]); i++) {
