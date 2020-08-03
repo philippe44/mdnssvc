@@ -790,6 +790,18 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 			}
 			break;
 
+		case RR_SRV:
+			srv_rec = &rr->data.SRV;
+			srv_rec->priority = mdns_read_u16(p);
+			p += sizeof(uint16_t);
+			srv_rec->weight = mdns_read_u16(p);
+			p += sizeof(uint16_t);
+			srv_rec->port = mdns_read_u16(p);
+			p += sizeof(uint16_t);
+			srv_rec->target = uncompress_nlabel(pkt_buf, pkt_len, p - pkt_buf);
+			p += label_len(pkt_buf, pkt_len, p - pkt_buf);
+			break;
+
 		default:
 			// skip to end of RR data
 			p = e;
