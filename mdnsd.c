@@ -113,7 +113,7 @@ static int create_recv_sock(uint32_t host) {
 	struct sockaddr_in serveraddr;
 	struct ip_mreq mreq;
 	socklen_t addrlen;
-	unsigned char ttl = 255;
+	unsigned char ttl = 32;
 
 	if (sd < 0) {
 		log_message(LOG_ERR, "recv socket(): %m");
@@ -782,14 +782,14 @@ struct mdnsd *mdnsd_start(struct in_addr host) {
 		free(server);
 		return NULL;
 	}
-	
+
 	return server;
 }
 
 void mdnsd_stop(struct mdnsd *s) {
 	struct timeval tv;
 
-		if (!s) return;
+	if (!s) return;
 
 	tv.tv_sec = 0;
 	tv.tv_usec = 500*1000;
