@@ -89,19 +89,30 @@ uint8_t *join_nlabel(const uint8_t *n1, const uint8_t *n2) {
 char *nlabel_to_str(const uint8_t *name) {
 	char *label, *labelp;
 	const uint8_t *p;
+	size_t buf_len = 256;
 
 	assert(name != NULL);
 
-	label = labelp = malloc(256);
-
+	label = labelp = malloc(buf_len);
 	for (p = name; *p; p++) {
-		strncpy(labelp, (char *) p + 1, *p);
-		labelp += *p;
+		uint8_t label_len = *p;
+		if (buf_len <= label_len)
+			break;
+
+		strncpy(labelp, (char *)p + 1, label_len);
+		labelp += label_len;
+
 		*labelp = '.';
 		labelp++;
 
-		p += *p;
+		buf_len -= label_len + 1;
+
+		p += label_len;
 	}
+
+	// avoid writing NULL past end of buffer
+	if (buf_len == 0)
+		labelp--;
 
 	*labelp = '\0';
 
