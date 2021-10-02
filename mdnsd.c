@@ -90,6 +90,8 @@ struct mdns_service {
 	struct rr_list *entries;
 };
 
+static int display_mdns_segment(struct mdnsd *svr, struct rr_list *segm, const char *name);
+
 /////////////////////////////////
 
 
@@ -277,6 +279,93 @@ static void announce_srv(struct mdnsd *svr, struct mdns_pkt *reply, uint8_t *nam
 
 	// additional records for additional records
 	add_related_rr(svr, reply->rr_add, reply);
+
+	display_mdns_segment(svr, reply->rr_ans, "announce ans");
+	display_mdns_segment(svr, reply->rr_add, "announce add");
+}
+
+static void query_svr(struct mdnsd *svr, struct mdns_pkt *query) {
+	mdns_init_pkt(query, 0);
+
+	struct rr_list *n;
+	n = svr->queries;
+	for (; n; n = n->next) {
+		rr_list_append(&query->rr_qn, n->e);
+		query->num_qn++;
+	}
+}
+
+static int display_rr_ptr(struct mdnsd *svr, struct rr_entry *ptr) {
+	int ret = -1;
+	char *namestr = nlabel_to_str(ptr->name);
+	DEBUG_PRINTF("type %s (%02x) %s - ", rr_get_type_name(ptr->type), ptr->type, namestr);
+	switch (ptr->type) {
+	case RR_PTR:
+		if (ptr->data.PTR.name != NULL) {
+			char *namestr = nlabel_to_str(ptr->data.PTR.name);
+			DEBUG_PRINTF("name: %s ", namestr);
+			free(namestr);
+		} else if (ptr->name != NULL) {
+			char *namestr = nlabel_to_str(ptr->name);
+			DEBUG_PRINTF("name: %s ", namestr);
+			free(namestr);
+		}
+		if (ptr->data.PTR.entry != NULL) {
+			DEBUG_PRINTF("ptr: ");
+			display_rr_ptr(svr, ptr->data.PTR.entry);
+		}
+	break;
+	case RR_SRV:
+		DEBUG_PRINTF("port: %d - %d - %d", ptr->data.SRV.port, ptr->data.SRV.weight, ptr->data.SRV.priority);
+		if (ptr->data.SRV.target != NULL) {
+			char *namestr = nlabel_to_str(ptr->data.SRV.target);
+			DEBUG_PRINTF(" target: %s", namestr);
+			free(namestr);
+		}
+	break;
+	case RR_TXT: {
+		struct rr_data_txt *txte;
+		DEBUG_PRINTF("txt");
+		for (txte = &ptr->data.TXT; txte; txte = txte->next) {
+			char *namestr = nlabel_to_str(txte->txt);
+			DEBUG_PRINTF(" %s -", namestr);
+			free(namestr);
+		}
+	}
+	break;
+	case RR_A: {
+		struct in_addr in;
+		in.s_addr = ptr->data.A.addr;
+		DEBUG_PRINTF("address: %s", inet_ntoa(in));
+	}
+	default:
+	break;
+	}
+	struct rr_entry *e = rr_entry_match(svr->queries, ptr);
+	if (e != NULL) {
+		DEBUG_PRINTF("receive answer for query %s\n", namestr);
+		if (ret == -1)
+			ret = 0;
+	}
+	free(namestr);
+	return ret;
+}
+
+static int display_mdns_segment(struct mdnsd *svr, struct rr_list *segm, const char *name) {
+	int i;
+	struct rr_list *ans;
+	int ret = -1;
+
+	ans = NULL; i = 0;
+	for (ans = segm; ans; ) {
+		struct rr_list *next = ans->next;
+		DEBUG_PRINTF("%s #%d: ", name, i);
+		ret = display_rr_ptr(svr, ans->e);
+		DEBUG_PRINTF("\n");
+		ans = next;
+		i++;
+	}
+	return ret;
 }
 
 // processes the incoming MDNS packet
@@ -285,19 +374,21 @@ static int process_mdns_pkt(struct mdnsd *svr, struct mdns_pkt *pkt, struct mdns
 	int i;
 	struct rr_list *qnl;
 	struct rr_list *ans, *prev_ans;
+	int ret = 0;
 
 	assert(pkt != NULL);
+
+	DEBUG_PRINTF("id = %04x, flags = %04x, qn = %d, ans = %d, add = %d %p\n",
+					pkt->id,
+					pkt->flags,
+					pkt->num_qn,
+					pkt->num_ans_rr,
+					pkt->num_add_rr, pkt->rr_add);
 
 	// is it standard query?
 	if ((pkt->flags & MDNS_FLAG_RESP) == 0 &&
 			MDNS_FLAG_GET_OPCODE(pkt->flags) == 0) {
 		mdns_init_reply(reply, pkt->id);
-
-		DEBUG_PRINTF("flags = %04x, qn = %d, ans = %d, add = %d\n",
-						pkt->flags,
-						pkt->num_qn,
-						pkt->num_ans_rr,
-						pkt->num_add_rr);
 
 		// loop through questions
 		qnl = pkt->rr_qn;
@@ -357,12 +448,15 @@ static int process_mdns_pkt(struct mdnsd *svr, struct mdns_pkt *pkt, struct mdns
 		// additional records for additional records
 		add_related_rr(svr, reply->rr_add, reply);
 
-		DEBUG_PRINTF("\n");
-
-		return reply->num_ans_rr;
+		ret = reply->num_ans_rr;
 	}
 
-	return 0;
+	display_mdns_segment(svr, pkt->rr_ans, "ans");
+	display_mdns_segment(svr, pkt->rr_auth, "auth");
+	display_mdns_segment(svr, pkt->rr_add, "add");
+	DEBUG_PRINTF("\n");
+
+	return ret;
 }
 
 int create_pipe(int handles[2]) {

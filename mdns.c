@@ -612,14 +612,13 @@ uint32_t mdns_read_u32(const uint8_t *ptr) {
 			((ptr[3] & 0xFF) <<  0);
 }
 
-// initialize the packet for reply
 // clears the packet of list structures but not its list items
-void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id) {
+void mdns_init_pkt(struct mdns_pkt *pkt, uint16_t id) {
 	// copy transaction ID
 	pkt->id = id;
 
-	// response flags
-	pkt->flags = MDNS_FLAG_RESP | MDNS_FLAG_AA;
+	// question flags
+	pkt->flags = 0;
 
 	rr_list_destroy(pkt->rr_qn,   0);
 	rr_list_destroy(pkt->rr_ans,  0);
@@ -637,6 +636,14 @@ void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id) {
 	pkt->num_add_rr = 0;
 }
 
+// initialize the packet for reply
+void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id) {
+	mdns_init_pkt(pkt, id);
+
+	// response flags
+	pkt->flags = MDNS_FLAG_RESP | MDNS_FLAG_AA;
+}
+
 // destroys an mdns_pkt struct, including its contents
 void mdns_pkt_destroy(struct mdns_pkt *p) {
 	rr_list_destroy(p->rr_qn, 1);
@@ -651,13 +658,11 @@ void mdns_pkt_destroy(struct mdns_pkt *p) {
 // parse the MDNS questions section
 // stores the parsed data in the given mdns_pkt struct
 static size_t mdns_parse_qn(uint8_t *pkt_buf, size_t pkt_len, size_t off, 
-		struct mdns_pkt *pkt) {
+		struct rr_list **list) {
 	const uint8_t *p = pkt_buf + off;
 	struct rr_entry *rr;
 	uint8_t *name;
    
-	assert(pkt != NULL);
-
 	rr = malloc(sizeof(struct rr_entry)); 
 	memset(rr, 0, sizeof(struct rr_entry));
 
@@ -672,7 +677,7 @@ static size_t mdns_parse_qn(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 	rr->rr_class = mdns_read_u16(p) & ~0x80;
 	p += sizeof(uint16_t);
 
-	rr_list_append(&pkt->rr_qn, rr);
+	rr_list_append(list, rr);
 	
 	return p - (pkt_buf + off);
 }
@@ -680,7 +685,7 @@ static size_t mdns_parse_qn(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 // parse the MDNS RR section
 // stores the parsed data in the given mdns_pkt struct
 static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off, 
-		struct mdns_pkt *pkt) {
+		struct rr_list **list) {
 	const uint8_t *p = pkt_buf + off;
 	const uint8_t *e = pkt_buf + pkt_len;
 	struct rr_entry *rr;
@@ -689,10 +694,10 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 	struct rr_data_txt *txt_rec;
 	int parse_error = 0;
 
-	assert(pkt != NULL);
-
-	if (off > pkt_len)
+	if (off > pkt_len) {
+		DEBUG_PRINTF("error length %ld %ld\n", off, pkt_len);
 		return 0;
+	}
 
 	rr = malloc(sizeof(struct rr_entry)); 
 	memset(rr, 0, sizeof(struct rr_entry));
@@ -714,6 +719,13 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 	// RR data
 	rr_data_len = mdns_read_u16(p);
 	p += sizeof(uint16_t);
+
+	if (rr_data_len == 0)
+	{
+		DEBUG_PRINTF("no data %ld\n", p - (pkt_buf + off));
+		rr_list_append(list, rr);
+		return p - (pkt_buf + off);
+	}
 
 	if (p + rr_data_len > e) {
 		DEBUG_PRINTF("rr_data_len goes beyond packet buffer: %zu > %zu\n", rr_data_len, e - p);
@@ -789,6 +801,18 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 			}
 			break;
 
+		case RR_SRV:
+			srv_rec = &rr->data.SRV;
+			srv_rec->priority = mdns_read_u16(p);
+			p += sizeof(uint16_t);
+			srv_rec->weight = mdns_read_u16(p);
+			p += sizeof(uint16_t);
+			srv_rec->port = mdns_read_u16(p);
+			p += sizeof(uint16_t);
+			srv_rec->target = uncompress_nlabel(pkt_buf, pkt_len, p - pkt_buf);
+			p += label_len(pkt_buf, pkt_len, p - pkt_buf);
+			break;
+
 		default:
 			// skip to end of RR data
 			p = e;
@@ -800,7 +824,7 @@ static size_t mdns_parse_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 		return 0;
 	}
 
-	rr_list_append(&pkt->rr_ans, rr);
+	rr_list_append(list, rr);
 	
 	return p - (pkt_buf + off);
 }
@@ -829,7 +853,7 @@ struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len) {
 
 	// parse questions
 	for (i = 0; i < pkt->num_qn; i++) {
-		size_t l = mdns_parse_qn(pkt_buf, pkt_len, off, pkt);
+		size_t l = mdns_parse_qn(pkt_buf, pkt_len, off, &pkt->rr_qn);
 		if (! l) {
 			DEBUG_PRINTF("error parsing question #%d\n", i);
 			mdns_pkt_destroy(pkt);
@@ -841,7 +865,7 @@ struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len) {
 
 	// parse answer RRs
 	for (i = 0; i < pkt->num_ans_rr; i++) {
-		size_t l = mdns_parse_rr(pkt_buf, pkt_len, off, pkt);
+		size_t l = mdns_parse_rr(pkt_buf, pkt_len, off, &pkt->rr_ans);
 		if (! l) {
 			DEBUG_PRINTF("error parsing answer #%d\n", i);
 			mdns_pkt_destroy(pkt);
@@ -851,7 +875,29 @@ struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len) {
 		off += l;
 	}
 
-	// TODO: parse the authority and additional RR sections
+	// parse authority RRs
+	for (i = 0; i < pkt->num_auth_rr; i++) {
+		size_t l = mdns_parse_rr(pkt_buf, pkt_len, off, &pkt->rr_auth);
+		if (! l) {
+			DEBUG_PRINTF("error parsing authority #%d\n", i);
+			mdns_pkt_destroy(pkt);
+			return NULL;
+		}
+
+		off += l;
+	}
+
+	// parse additional RRs
+	for (i = 0; i < pkt->num_add_rr; i++) {
+		size_t l = mdns_parse_rr(pkt_buf, pkt_len, off, &pkt->rr_add);
+		if (! l) {
+			DEBUG_PRINTF("error parsing additional #%d\n", i);
+			mdns_pkt_destroy(pkt);
+			return NULL;
+		}
+
+		off += l;
+	}
 
 	return pkt;
 }
@@ -947,10 +993,12 @@ static size_t mdns_encode_rr(uint8_t *pkt_buf, size_t pkt_len, size_t off,
 			break;
 
 		case RR_PTR:
-			label = rr->data.PTR.name ? 
-					rr->data.PTR.name : 
-					rr->data.PTR.entry->name;
-			p += mdns_encode_name(pkt_buf, pkt_len, p - pkt_buf, label, comp);
+			if (rr->data.PTR.name != NULL || rr->data.PTR.entry != NULL) {
+				label = rr->data.PTR.name ? 
+						rr->data.PTR.name : 
+						rr->data.PTR.entry->name;
+				p += mdns_encode_name(pkt_buf, pkt_len, p - pkt_buf, label, comp);
+			}
 			break;
 
 		case RR_TXT:
@@ -1007,16 +1055,13 @@ size_t mdns_encode_pkt(struct mdns_pkt *answer, uint8_t *pkt_buf, size_t pkt_len
 	//uint8_t *e = pkt_buf + pkt_len;
 	size_t off;
 	int i;
-	struct rr_list *rr_set[3];
+	struct rr_list *rr_set[4];
 
 	assert(answer != NULL);
 	assert(pkt_len >= 12);
 
 	if (p == NULL)
 		return -1;
-
-	// this is an Answer - number of qns should be zero
-	assert(answer->num_qn == 0);
 
 	p = mdns_write_u16(p, answer->id);
 	p = mdns_write_u16(p, answer->flags);
@@ -1038,9 +1083,10 @@ size_t mdns_encode_pkt(struct mdns_pkt *answer, uint8_t *pkt_buf, size_t pkt_len
 	comp->pos = 0;
 
 	// skip encoding of qn
-	rr_set[0] =	answer->rr_ans;
-	rr_set[1] = answer->rr_auth;
-	rr_set[2] =	answer->rr_add;
+	rr_set[0] =	answer->rr_qn;
+	rr_set[1] =	answer->rr_ans;
+	rr_set[2] = answer->rr_auth;
+	rr_set[3] =	answer->rr_add;
 
 	// encode answer, authority and additional RRs
 	for (i = 0; i < sizeof(rr_set) / sizeof(rr_set[0]); i++) {

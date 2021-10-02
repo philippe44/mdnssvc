@@ -169,6 +169,7 @@ struct mdns_pkt {
 struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len);
 
 void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id);
+void mdns_init_pkt(struct mdns_pkt *pkt, uint16_t id);
 size_t mdns_encode_pkt(struct mdns_pkt *answer, uint8_t *pkt_buf, size_t pkt_len);
 
 void mdns_pkt_destroy(struct mdns_pkt *p);
