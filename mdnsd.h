@@ -36,6 +36,10 @@
 #include <netinet/in.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct mdnsd;
 struct mdns_service;
 
@@ -59,6 +63,10 @@ void mdns_service_destroy(struct mdns_service *srv);
 
 // remove AND destroys the mdns_service struct returned by mdnsd_register_svc()
 void mdns_service_remove(struct mdnsd *svr, struct mdns_service *svc);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif/*!__MDNSD_H__*/

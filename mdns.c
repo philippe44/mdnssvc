@@ -424,7 +424,7 @@ int rr_list_append(struct rr_list **rr_head, struct rr_entry *rr) {
 	if (*rr_head == NULL) {
 		*rr_head = node;
 	} else {
-		struct rr_list *e = *rr_head, *taile;
+		struct rr_list *e = *rr_head, *taile = NULL;
 		for (; e; e = e->next) {
 			// already in list - don't add
 			if (e->e == rr) {

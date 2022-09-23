@@ -92,18 +92,20 @@ struct rr_data_aaaa {
 	struct in6_addr *addr;
 };
 
+typedef enum rr_type {
+	RR_A		= 0x01,
+	RR_PTR		= 0x0C,
+	RR_TXT		= 0x10,
+	RR_AAAA		= 0x1C,
+	RR_SRV		= 0x21,
+	RR_NSEC		= 0x2F,
+	RR_ANY		= 0xFF,
+} type;
+
 struct rr_entry {
 	uint8_t *name;
 
-	enum rr_type {
-		RR_A		= 0x01,
-		RR_PTR		= 0x0C,
-		RR_TXT		= 0x10,
-		RR_AAAA		= 0x1C,
-		RR_SRV		= 0x21,
-		RR_NSEC		= 0x2F,
-		RR_ANY		= 0xFF,
-	} type;
+	enum rr_type type;
 
 	uint32_t ttl;
 
