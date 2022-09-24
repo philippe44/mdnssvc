@@ -64,14 +64,6 @@
 #error missing pthread
 #endif
 
-/*
- * Define a proper IP socket level if not already done.
- * Required to compile on OS X
- */
-#ifndef SOL_IP
-#define SOL_IP IPPROTO_IP
-#endif
-
 #include "mdns.h"
 #include "mdnsd.h"
 
@@ -190,7 +182,7 @@ static int create_recv_sock(uint32_t host) {
 
 #ifdef IP_PKTINFO
 	on = 1;
-	if ((r = setsockopt(sd, SOL_IP, IP_PKTINFO, (char *) &on, sizeof(on))) < 0) {
+	if ((r = setsockopt(sd, IPPROTO_IP, IP_PKTINFO, (char *) &on, sizeof(on))) < 0) {
 		log_message(LOG_ERR, "recv setsockopt(IP_PKTINFO): %m");
 		return r;
 	}
