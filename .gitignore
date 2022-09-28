@@ -47,7 +47,6 @@ Temporary Items
 .apdisk
 
 __history/
-Win32/
 *.cb*
 *.o
 *.tds
@@ -55,3 +54,4 @@ Win32/
 *.map
 *.il*
 build
+bin

@@ -214,8 +214,9 @@ static in_addr_t get_localhost(char **name)
 }
 
 
-/*---------------------------------------------------------------------------*/
-static int print_usage(void) {
+
+/*---------------------------------------------------------------------------*/
+static int print_usage(void) {
 	printf("[host <ip>] <identity> <type> <port> <txt> [txt] ... [txt]\n");
 #ifdef WIN32
 	winsock_close();
@@ -224,8 +225,9 @@ static in_addr_t get_localhost(char **name)
 }
 
 
-/*---------------------------------------------------------------------------*/
-static void sighandler(int signum) {
+
+/*---------------------------------------------------------------------------*/
+static void sighandler(int signum) {
 	mdnsd_stop(svr);
 #ifdef WIN32
 	winsock_close();
@@ -234,12 +236,12 @@ static in_addr_t get_localhost(char **name)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/*																			 */
-/*---------------------------------------------------------------------------*/
-#ifdef MDNS_SVC
-int mdns_server(int argc, char *argv[]) {
-#else
+/*---------------------------------------------------------------------------*/
+/*																			 */
+/*---------------------------------------------------------------------------*/
+#ifdef MDNS_SVC
+int mdns_server(int argc, char *argv[]) {
+#else
 int main(int argc, char *argv[]) {
 #endif
 	char type[255];
@@ -276,9 +278,10 @@ int main(int argc, char *argv[]) {
 
 	if (host.s_addr == INADDR_ANY) {
 		printf("cannot find host address\n");
-		free(hostname);
-		return print_usage();
-	}
+		free(hostname);
+		return print_usage();
+
+	}
 
 	if (argc < 5+opt) return print_usage();
 
@@ -294,11 +297,9 @@ int main(int argc, char *argv[]) {
 	mdnsd_set_hostname(svr, hostname, host);
 
 	sprintf(type, "%s.local", argv[2 + opt]);
-
 	printf("host     : %s\nidentity : %s\ntype     : %s\n"
 		   "ip       : %s\nport     : %u\n",
 			hostname, argv[1 + opt], type, inet_ntoa(host), port);
-
 	free(hostname);
 
 	svc = mdnsd_register_svc(svr, argv[1 + opt], type, port, NULL, txt);
@@ -320,4 +321,4 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
-
+
