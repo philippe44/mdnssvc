@@ -1,3 +1,4 @@
+# Introduction
 This is a fork from https://bitbucket.org/geekman/tinysvcmdns. It works under
 Windows, OSX, and Linux (x86, x86_64, arm and aarch64) and with VisualStudio.
 
@@ -7,6 +8,8 @@ properly release all allocated memory
 I've also added a small real responder
 
 # Building
+The bin/ directory contains pre-built binary, but you can easily re-generate them all. 
+
 To cross-compile, add the following compilers
 ```
 x86     => sudo apt install gcc make gcc-i686-linux-gnu binutils-i686-linux-gnu
