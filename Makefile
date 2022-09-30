@@ -2,7 +2,7 @@ SRC 		= .
 EXECUTABLE	= ./bin/tinysvcmdns-$(PLATFORM)
 LIB		= ./targets/linux/$(PLATFORM)/tinysvcmdns.a
 OBJ		= build/$(PLATFORM)
-LIBOBJ		= build/lib/$(PLATFORM)
+LIBOBJ	= build/lib/$(PLATFORM)
 
 DEFINES  = -DNDEBUG
 CFLAGS  += -Wall -Wno-stringop-truncation -Wno-format-truncation -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES) -fdata-sections -ffunction-sections 
