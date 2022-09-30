@@ -1,6 +1,6 @@
 SRC 		= .
 EXECUTABLE	= ./bin/tinysvcmdns-$(PLATFORM)
-LIB		= ./targets/linux/$(PLATFORM)/tinysvcmnds.a
+LIB		= ./targets/linux/$(PLATFORM)/tinysvcmdns.a
 OBJ		= build/$(PLATFORM)
 LIBOBJ		= build/lib/$(PLATFORM)
 
