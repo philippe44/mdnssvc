@@ -1,8 +1,9 @@
-CFLAGS  ?= -Wall -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES)
-LDFLAGS ?= -s -lpthread -lcrypto -ldl -lm -lrt -lz -L. 
+CC = i686-linux-gnu-gcc
+CFLAGS  = 
+LDFLAGS = -s
 
-OBJ			= bin/x86
-EXECUTABLE 	= bin/tinysvcmdns-x86
+HOST = linux
+PLATFORM = x86
 
 include Makefile
 

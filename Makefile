@@ -1,6 +1,11 @@
 SRC 		= .
 LIBRARY 	=
-DEFINES 	= -DNDEBUG
+EXECUTABLE	= ./bin/tinysvcmdns-$(PLATFORM)
+OBJ		= build/$(PLATFORM)
+
+DEFINES  = -DNDEBUG
+CFLAGS  += -Wall -Wno-stringop-truncation -Wno-format-truncation -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES) -fdata-sections -ffunction-sections 
+LDFLAGS += -lpthread -ldl -lm -lrt -L. 
 
 vpath %.c $(SRC)
 
@@ -27,5 +32,5 @@ $(OBJ)/%.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -c -o $@
 	
 clean:
-	rm -f $(OBJECTS) $(EXECUTABLE) 
+	rm -f $(OBJECTS) $(EXECUTABLE) $(LIB)
 
