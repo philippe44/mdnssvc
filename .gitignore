@@ -55,3 +55,6 @@ __history/
 *.il*
 *.bak
 build
+.vs/
+*.idb
+*.user
