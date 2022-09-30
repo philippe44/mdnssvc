@@ -1,11 +1,20 @@
 This is a fork from https://bitbucket.org/geekman/tinysvcmdns. It works under
-Windows, OSX, and Linux (x86 and ARM) and with Embarcadero C++ builder XE7 
-which is not C11 compliant
+Windows, OSX, and Linux (x86, x86_64, arm and aarch64) and with VisualStudio.
 
 I've added a function to stop a registered service, send bye-bye packet and 
 properly release all allocated memory
 
 I've also added a small real responder
+
+# Building
+To cross-compile, add the following compilers
+```
+x86     => sudo apt install gcc make gcc-i686-linux-gnu binutils-i686-linux-gnu
+aarch64 => sudo apt install gcc make gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+arm     => sudo apt install gcc make gcc-arm-linux-gnueabi binutils-aarch64-linux-gnueabi
+```
+Do *not* use gcc-multilib to get arm/aarch64 cross-compile together with x86 on a x86_64 Debian-based distro, it will not work, they are multually exclusive. Instead use "gcc-i86-linux-gnu". Of course, you loose the benefit of compiling with the 64 bits compile and use -m32 switch
+
 
 ----------------------------- original README -----------------------------
 
