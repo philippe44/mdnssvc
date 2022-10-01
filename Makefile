@@ -1,12 +1,16 @@
+SPLITTED = $(subst -, ,$(CC))
+PLATFORM ?= $(firstword $(SPLITTED))
+HOST ?= $(word 2, $(SPLITTED))
+
 SRC 		= .
-EXECUTABLE	= ./bin/tinysvcmdns-$(PLATFORM)
-LIB		= ./targets/linux/$(PLATFORM)/tinysvcmdns.a
+EXECUTABLE	= bin/tinysvcmdns-$(PLATFORM)
+LIB		= lib/$(PLATFORM)/tinysvcmdns.a
 OBJ		= build/$(PLATFORM)
 LIBOBJ	= build/lib/$(PLATFORM)
 
 DEFINES  = -DNDEBUG
 CFLAGS  += -Wall -Wno-stringop-truncation -Wno-format-truncation -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES) -fdata-sections -ffunction-sections 
-LDFLAGS += -lpthread -ldl -lm -lrt -L. 
+LDFLAGS += -s -lpthread -ldl -lm -lrt -L. 
 
 vpath %.c $(SRC)
 
@@ -23,10 +27,10 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(OBJECTS) $(LIBRARY) $(LDFLAGS) -o $@
 
 $(LIB): $(LIBOBJECTS)
-	ar rcs $@ $(LIBOBJECTS) 
+	$(AR) rcs $@ $(LIBOBJECTS) 
 
-$(OBJECTS): | bin $(OBJ)
-$(LIBOBJECTS): | lib $(LIBOBJ)
+$(OBJECTS): | bindir $(OBJ)
+$(LIBOBJECTS): | libdir $(LIBOBJ)
 
 $(OBJ):
 	@mkdir -p $@
@@ -34,11 +38,11 @@ $(OBJ):
 $(LIBOBJ):
 	@mkdir -p $@
 	
-bin:	
+bindir:	
 	@mkdir -p bin
 
-lib:
-	@mkdir -p targets/linux/$(PLATFORM)
+libdir:
+	@mkdir -p lib/$(PLATFORM)
 
 $(OBJ)/%.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -c -o $@

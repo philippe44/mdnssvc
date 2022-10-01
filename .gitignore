@@ -54,7 +54,8 @@ __history/
 *.map
 *.il*
 *.bak
-build
+build/
+lib/
 .vs/
 *.idb
 *.user

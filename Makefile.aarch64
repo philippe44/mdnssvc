@@ -1,9 +1,0 @@
-CC =aarch64-linux-gnu-gcc
-CFLAGS  =
-LDFLAGS = -s
-
-HOST = linux
-PLATFORM = aarch64
-
-include Makefile
-
