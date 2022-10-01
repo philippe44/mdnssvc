@@ -1,7 +1,7 @@
 #!/bin/bash
 
-list="x86_64-linux-gnu-gcc x86-linux-gnu-gcc arm-linux-gnueabi-gcc aarch64-linux-gnu-gcc sparc64-linux-gnu-gcc mips-linux-gnu-gcc powerpc-linux-gnu-gcc"
-declare -A alias=( [x86-linux-gnu-gcc]=i686-linux-gnu-gcc )
+list="x86_64-linux-gnu-gcc i686-linux-gnu-gcc arm-linux-gnueabi-gcc aarch64-linux-gnu-gcc sparc64-linux-gnu-gcc mips-linux-gnu-gcc powerpc-linux-gnu-gcc"
+declare -A alias=( [i686-linux-gnu-gcc]=x86-linux-gnu-gcc )
 declare -a selected
 
 IFS= read -ra offered <<< "$list"
@@ -14,9 +14,8 @@ do
 	else 
 		for cc in ${offered[@]}
 		do
-			if [[ $cc == *$arg* ]]; then 
+			if [[ ${alias[$cc]:-$cc} == *$arg* ]]; then 
 				selected+=($cc)
-				break
 			fi
 		done
 	fi	
@@ -27,13 +26,12 @@ selected=${selected:=$offered}
 # then iterate selected platforms/compiler
 for cc in ${selected[@]}
 do
-	IFS=- read -r platform os dummy <<< "$cc"
-	cc=${alias[$cc]:-$cc}
-	
 	if ! command -v $cc &> /dev/null; then
 		echo $cc is not available
 		continue
 	fi	
+	
+	IFS=- read -r platform os dummy <<< ${alias[$cc]:-$cc}
 
 	make CC=$cc PLATFORM=$platform $clean
 	if [ $clean ]; then
