@@ -1,6 +1,9 @@
 #!/bin/bash
-list="x86_64-linux-gnu-gcc i686-linux-gnu-gcc arm-linux-gnueabi-gcc aarch64-linux-gnu-gcc sparc64-linux-gnu-gcc mips-linux-gnu-gcc powerpc-linux-gnu-gcc"
+
+list="x86_64-linux-gnu-gcc x86-linux-gnu-gcc arm-linux-gnueabi-gcc aarch64-linux-gnu-gcc sparc64-linux-gnu-gcc mips-linux-gnu-gcc powerpc-linux-gnu-gcc"
+declare -A alias=( [x86-linux-gnu-gcc]=i686-linux-gnu-gcc )
 declare -a selected
+
 IFS= read -ra offered <<< "$list"
 
 # first check if it's just cleaning
@@ -24,11 +27,19 @@ selected=${selected:=$offered}
 # then iterate selected targets/compilers
 for cc in ${selected[@]}
 do
-	IFS=- read -r target string <<< "$cc"
+	IFS=- read -r target os dummy <<< "$cc"
+	cc=${alias[$cc]:-$cc}
+	
+	if ! command -v $cc &> /dev/null; then
+		echo $cc is not available
+		continue
+	fi	
+
 	make CC=$cc $clean
 	if [ $clean ]; then
 		continue
 	fi
-	mkdir -p targets/linux/$target
+	
+	mkdir -p targets/$os/$target
 	cp lib/$target/tinysvcmdns.a $_
 done
