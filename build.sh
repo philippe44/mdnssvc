@@ -35,7 +35,7 @@ do
 		continue
 	fi	
 
-	make CC=$cc $clean
+	make CC=$cc PLATFORM=$target $clean
 	if [ $clean ]; then
 		continue
 	fi
