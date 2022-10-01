@@ -31,13 +31,13 @@ do
 		continue
 	fi	
 	
-	IFS=- read -r platform os dummy <<< ${alias[$cc]:-$cc}
+	IFS=- read -r platform host dummy <<< ${alias[$cc]:-$cc}
 
 	make CC=$cc PLATFORM=$platform $clean
 	if [ $clean ]; then
 		continue
 	fi
 	
-	mkdir -p targets/$os/$platform
+	mkdir -p targets/$host/$platform
 	cp lib/$platform/tinysvcmdns.a $_
 done
