@@ -8,7 +8,7 @@ properly release all allocated memory
 I've also added a small real responder
 
 # Building
-The bin/ directory contains pre-built binary, but you can easily re-generate them all. 
+The bin/ directory contains pre-built binary, but you can easily re-generate them all. Under lib/, there is a set of libraries that can be used by 3rd party application to incorporate this as a mDNS responder. (see for example https://github.com/philippe44/AirConnect)
 
 To cross-compile, add the following compilers
 ```
