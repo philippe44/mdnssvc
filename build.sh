@@ -24,10 +24,10 @@ done
 
 selected=${selected:=$offered}
 
-# then iterate selected targets/compilers
+# then iterate selected platforms/compiler
 for cc in ${selected[@]}
 do
-	IFS=- read -r target os dummy <<< "$cc"
+	IFS=- read -r platform os dummy <<< "$cc"
 	cc=${alias[$cc]:-$cc}
 	
 	if ! command -v $cc &> /dev/null; then
@@ -35,11 +35,11 @@ do
 		continue
 	fi	
 
-	make CC=$cc PLATFORM=$target $clean
+	make CC=$cc PLATFORM=$platform $clean
 	if [ $clean ]; then
 		continue
 	fi
 	
-	mkdir -p targets/$os/$target
-	cp lib/$target/tinysvcmdns.a $_
+	mkdir -p targets/$os/$platform
+	cp lib/$platform/tinysvcmdns.a $_
 done
