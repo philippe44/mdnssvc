@@ -2,8 +2,9 @@
 
 list="x86_64-linux-gnu-gcc i686-linux-gnu-gcc arm-linux-gnueabi-gcc aarch64-linux-gnu-gcc sparc64-linux-gnu-gcc mips-linux-gnu-gcc powerpc-linux-gnu-gcc"
 declare -A alias=( [i686-linux-gnu-gcc]=x86-linux-gnu-gcc )
+declare -a compilers
 
-IFS= read -ra compilers <<< "$list"
+IFS= read -ra candidates <<< "$list"
 
 # do we have "clean" somewhere in parameters (assuming no compiler has "clean" in it...
 if [[ $@[*]} =~ clean ]]; then
@@ -11,27 +12,24 @@ if [[ $@[*]} =~ clean ]]; then
 fi	
 
 # first select platforms/compilers
-for cc in ${compilers[@]}
+for cc in ${candidates[@]}
 do
 	# check compiler first
 	if ! command -v $cc &> /dev/null; then
-		compilers=( "${compilers[@]/$cc}" )	
+		continue
+	fi
+	
+	if [[ $# == 0 || ($# == 1 && -n $clean) ]]; then
+		compilers+=($cc)
 		continue
 	fi
 
-	# then loop through args to see if candidates should be kept
-	if [[ $# > 1 || ($# == 1 && -z $clean) ]]; then
-		for arg in $@
-		do
-			if [[ ${alias[$cc]:-$cc} =~ $arg ]]; then 
-				found=y
-			fi
-		done
-		if [[ -z $found ]]; then
-			compilers=( "${compilers[@]/$cc}" )
+	for arg in $@
+	do
+		if [[ ${alias[$cc]:-$cc} =~ $arg ]]; then 
+			compilers+=($cc)
 		fi
-			unset found			
-	fi		
+	done
 done
 
 # then do the work
