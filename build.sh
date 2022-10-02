@@ -2,39 +2,45 @@
 
 list="x86_64-linux-gnu-gcc i686-linux-gnu-gcc arm-linux-gnueabi-gcc aarch64-linux-gnu-gcc sparc64-linux-gnu-gcc mips-linux-gnu-gcc powerpc-linux-gnu-gcc"
 declare -A alias=( [i686-linux-gnu-gcc]=x86-linux-gnu-gcc )
-declare -a selected
 
-IFS= read -ra offered <<< "$list"
+IFS= read -ra compilers <<< "$list"
 
-# first check if it's just cleaning
-for arg in $@
+# do we have "clean" somewhere in parameters (assuming no compiler has "clean" in it...
+if [[ $@[*]} =~ clean ]]; then
+	clean="clean"
+fi	
+
+# first select platforms/compilers
+for cc in ${compilers[@]}
 do
-	if [ $arg == "clean" ]; then
-		clean="clean"
-	else 
-		for cc in ${offered[@]}
+	# check compiler first
+	if ! command -v $cc &> /dev/null; then
+		compilers=( "${compilers[@]/$cc}" )	
+		continue
+	fi
+
+	# then loop through args to see if candidates should be kept
+	if [[ $# > 1 || ($# == 1 && -z $clean) ]]; then
+		for arg in $@
 		do
-			if [[ ${alias[$cc]:-$cc} == *$arg* ]]; then 
-				selected+=($cc)
+			if [[ ${alias[$cc]:-$cc} =~ $arg ]]; then 
+				found=y
 			fi
 		done
-	fi	
+		if [[ -z $found ]]; then
+			compilers=( "${compilers[@]/$cc}" )
+		fi
+			unset found			
+	fi		
 done
 
-selected=${selected:=$offered}
-
-# then iterate selected platforms/compiler
-for cc in ${selected[@]}
+# then do the work
+for cc in ${compilers[@]}
 do
-	if ! command -v $cc &> /dev/null; then
-		echo $cc is not available
-		continue
-	fi	
-	
 	IFS=- read -r platform host dummy <<< ${alias[$cc]:-$cc}
 
 	make CC=$cc PLATFORM=$platform $clean
-	if [ $clean ]; then
+	if [[ -n $clean ]]; then
 		continue
 	fi
 	
