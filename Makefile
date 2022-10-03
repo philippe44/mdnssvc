@@ -1,5 +1,5 @@
 ifeq ($(CC),cc)
-CC=$(lastword $(subst /, ,$(shell readlink -f `which gcc`)))
+CC=$(lastword $(subst /, ,$(shell readlink -f `which cc`)))
 endif
 
 PLATFORM ?= $(firstword $(subst -, ,$(CC)))
