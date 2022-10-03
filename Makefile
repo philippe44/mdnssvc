@@ -1,6 +1,9 @@
-SPLITTED = $(subst -, ,$(CC))
-PLATFORM ?= $(firstword $(SPLITTED))
-HOST ?= $(word 2, $(SPLITTED))
+ifeq ($(CC),cc)
+CC=$(lastword $(subst /, ,$(shell readlink -f `which gcc`)))
+endif
+
+PLATFORM ?= $(firstword $(subst -, ,$(CC)))
+HOST ?= $(word 2, $(subst -, ,$(CC)))
 
 SRC 		= .
 EXECUTABLE	= bin/tinysvcmdns-$(PLATFORM)
