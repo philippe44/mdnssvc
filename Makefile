@@ -12,7 +12,7 @@ OBJ		= build/$(PLATFORM)
 LIBOBJ	= build/lib/$(PLATFORM)
 
 DEFINES  = -DNDEBUG
-CFLAGS  += -Wall -Wno-stringop-truncation -Wno-format-truncation -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES) -fdata-sections -ffunction-sections 
+CFLAGS  += -Wall -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES) -fdata-sections -ffunction-sections 
 LDFLAGS += -s -lpthread -ldl -lm -lrt -L. 
 
 vpath %.c $(SRC)
