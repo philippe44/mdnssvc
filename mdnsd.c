@@ -320,11 +320,8 @@ static int process_mdns_pkt(struct mdnsd *svr, struct mdns_pkt *pkt, struct mdns
 			DEBUG_PRINTF("qn #%d: type %s (%02x) %s - ", i, rr_get_type_name(qn->type), qn->type, namestr);
 			free(namestr);
 
-			// check if it's a unicast query - we ignore those
-			if (qn->unicast_query) {
-				DEBUG_PRINTF("skipping unicast query\n");
-				continue;
-			}
+			// mark that a unicast response is desired
+			reply->unicast |= qn->unicast_query;
 
 			num_ans_added = populate_answers(svr, &reply->rr_ans, qn->name, qn->type);
 			reply->num_ans_rr += num_ans_added;
@@ -494,7 +491,14 @@ static void main_loop(struct mdnsd *svr) {
 			if (mdns != NULL) {
 				if (process_mdns_pkt(svr, mdns, mdns_reply)) {
 					size_t replylen = mdns_encode_pkt(mdns_reply, pkt_buffer, PACKET_SIZE);
-					send_packet(svr->sockfd, pkt_buffer, replylen);
+					if (mdns_reply->unicast) {
+						int sock = socket(fromaddr.sin_family, SOCK_DGRAM, 0);
+						sendto(sock, pkt_buffer, replylen, 0, (void*) &fromaddr, sizeof(struct sockaddr_in));
+						DEBUG_PRINTF("unicast answer\n");
+						closesocket(sock);
+					} else {
+						send_packet(svr->sockfd, pkt_buffer, replylen);
+					}
 				} else if (mdns->num_qn == 0) {
 					DEBUG_PRINTF("(no questions in packet)\n\n");
 				}

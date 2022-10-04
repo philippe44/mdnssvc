@@ -615,6 +615,9 @@ uint32_t mdns_read_u32(const uint8_t *ptr) {
 // initialize the packet for reply
 // clears the packet of list structures but not its list items
 void mdns_init_reply(struct mdns_pkt *pkt, uint16_t id) {
+	// broadcast by default
+	pkt->unicast = 0;
+
 	// copy transaction ID
 	pkt->id = id;
 

@@ -109,9 +109,8 @@ struct rr_entry {
 
 	uint32_t ttl;
 
-	// for use in Questions only
 	char unicast_query;
-
+	
 	// for use in Answers only
 	char cache_flush;
 
@@ -161,6 +160,8 @@ struct mdns_pkt {
 	uint16_t num_ans_rr;
 	uint16_t num_auth_rr;
 	uint16_t num_add_rr;
+
+	char unicast;
 
 	struct rr_list *rr_qn;		// questions
 	struct rr_list *rr_ans;		// answer RRs
