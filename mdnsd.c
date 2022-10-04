@@ -495,7 +495,11 @@ static void main_loop(struct mdnsd *svr) {
 						int sock = socket(fromaddr.sin_family, SOCK_DGRAM, 0);
 						sendto(sock, pkt_buffer, replylen, 0, (void*) &fromaddr, sizeof(struct sockaddr_in));
 						DEBUG_PRINTF("unicast answer\n");
+#ifdef _WIN32
 						closesocket(sock);
+#else
+						close(sock);
+#endif
 					} else {
 						send_packet(svr->sockfd, pkt_buffer, replylen);
 					}
