@@ -24,26 +24,24 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{afb3d404-7084-434b-a25e-9c5bdc3fa40a}</ProjectGuid>
+    <ProjectGuid>{4CB44756-1759-4CC2-B979-BE4E045AB140}</ProjectGuid>
     <RootNamespace>tinysvcmdns</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-	<ConfigurationType>StaticLibrary</ConfigurationType>	
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <OutDir>$(SolutionDir)\targets\win32\x86\</OutDir>
-	<TargetName>lib$(ProjectName)</TargetName>		
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>	
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-	<OutDir>$(SolutionDir)\targets\win32\x86\</OutDir>
-	<TargetName>lib$(ProjectName)</TargetName>	
+    <OutDir>$(SolutionDir)\targets\win32\x86\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Sample|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -53,21 +51,11 @@
     <CharacterSet>Unicode</CharacterSet>
     <OutDir>$(SolutionDir)\bin\</OutDir>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />  
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <PropertyGroup Label="Configuration">
-    <IntDir>$(SolutionDir)\build\Win32-$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup >
-  <PropertyGroup Condition="'$(Configuration)'!='Sample'" Label="Configuration">
-    <OutDir>$(SolutionDir)\lib\win32\x86\</OutDir>
-	<TargetName>lib$(ProjectName)</TargetName>			
-  </PropertyGroup> 
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
-	<TargetName>lib$(ProjectName)d</TargetName>			
-  </PropertyGroup>   
   <PropertyGroup>
     <IntDir>$(SolutionDir)\build\Win32-$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>  
+  </PropertyGroup>
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
@@ -107,11 +95,11 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-	  <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>wsock32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>	
+    </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
