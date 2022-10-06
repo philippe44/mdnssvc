@@ -26,8 +26,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __MDNSD_H__
-#define __MDNSD_H__
+#ifndef __TINYSVCMDNS_H__
+#define __TINYSVCMDNS_H__
 
 #include <stdint.h>
 #ifdef _WIN32

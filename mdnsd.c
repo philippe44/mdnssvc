@@ -65,7 +65,7 @@
 #endif
 
 #include "mdns.h"
-#include "mdnsd.h"
+#include "tinysvcmdns.h"
 
 #if _MSC_VER
 #define ssize_t SSIZE_T

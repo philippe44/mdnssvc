@@ -64,7 +64,7 @@ typedef uint32_t in_addr_t;
 #endif
 
 #include "mdns.h"
-#include "mdnsd.h"
+#include "tinysvcmdns.h"
 
 struct mdns_service *svc;
 struct mdnsd *svr;
