@@ -43,7 +43,4 @@ do
 	if [[ -n $clean ]]; then
 		continue
 	fi
-	
-	mkdir -p targets/$host/$platform
-	cp lib/$platform/tinysvcmdns.a $_
 done

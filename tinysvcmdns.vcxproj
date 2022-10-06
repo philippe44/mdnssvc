@@ -34,6 +34,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <OutDir>$(SolutionDir)\targets\win32\x86\</OutDir>
+	<TargetName>lib$(ProjectName)</TargetName>		
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>	
@@ -42,6 +43,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
 	<OutDir>$(SolutionDir)\targets\win32\x86\</OutDir>
+	<TargetName>lib$(ProjectName)</TargetName>	
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Sample|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -53,6 +55,16 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Label="Configuration">
+    <IntDir>$(SolutionDir)\build\Win32-$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup >
+  <PropertyGroup Condition="'$(Configuration)'!='Sample'" Label="Configuration">
+    <OutDir>$(SolutionDir)\lib\win32\x86\</OutDir>
+	<TargetName>lib$(ProjectName)</TargetName>			
+  </PropertyGroup> 
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+	<TargetName>lib$(ProjectName)d</TargetName>			
+  </PropertyGroup>   
   <PropertyGroup>
     <IntDir>$(SolutionDir)\build\Win32-$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>  

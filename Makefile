@@ -6,10 +6,9 @@ PLATFORM ?= $(firstword $(subst -, ,$(CC)))
 HOST ?= $(word 2, $(subst -, ,$(CC)))
 
 SRC 		= .
-EXECUTABLE	= bin/tinysvcmdns-$(PLATFORM)
-LIB		= lib/$(PLATFORM)/tinysvcmdns.a
-OBJ		= build/$(PLATFORM)
-LIBOBJ	= build/lib/$(PLATFORM)
+BIN			= bin/tinysvcmdns-$(PLATFORM)
+LIB			= lib/$(HOST)/$(PLATFORM)/libtinysvcmdns.a
+BUILDDIR	= build/$(PLATFORM)
 
 DEFINES  = -DNDEBUG
 CFLAGS  += -Wall -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation -fPIC -ggdb -O2 $(OPTS) $(INCLUDE) $(DEFINES) -fdata-sections -ffunction-sections 
@@ -21,38 +20,29 @@ INCLUDE = -I$(SRC)
 
 SOURCES = mdns.c mdnsd.c tinysvcmdns.c
 		
-OBJECTS = $(patsubst %.c,$(OBJ)/%.o,$(SOURCES)) 
-LIBOBJECTS = $(patsubst %.c,$(LIBOBJ)/%.o,$(SOURCES)) 
+OBJECTS = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES)) 
+LIBOBJECTS = $(patsubst %.c,$(BUILDDIR)/lib/%.o,$(SOURCES)) 
 
-all: $(EXECUTABLE) $(LIB)
+all: directory $(BIN) $(LIB)
 
-$(EXECUTABLE): $(OBJECTS)
+$(BIN): $(OBJECTS)
+	echo $(BIN)
 	$(CC) $(OBJECTS) $(LIBRARY) $(LDFLAGS) -o $@
 
 $(LIB): $(LIBOBJECTS)
 	$(AR) rcs $@ $(LIBOBJECTS) 
 
-$(OBJECTS): | bindir $(OBJ)
-$(LIBOBJECTS): | libdir $(LIBOBJ)
-
-$(OBJ):
-	@mkdir -p $@
-
-$(LIBOBJ):
-	@mkdir -p $@
-	
-bindir:	
+directory:
 	@mkdir -p bin
+	@mkdir -p lib/$(HOST)/$(PLATFORM)	
+	@mkdir -p $(BUILDDIR)/lib
 
-libdir:
-	@mkdir -p lib/$(PLATFORM)
-
-$(OBJ)/%.o : %.c
+$(BUILDDIR)/%.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -c -o $@
 
-$(LIBOBJ)/%.o : %.c
-	$(CC) $(CFLAGS) -DMDNS_SVC $(CPPFLAGS) $(INCLUDE) $< -c -o $@
+$(BUILDDIR)/lib/%.o : %.c
+	$(CC) $(CFLAGS) -g -DMDNS_SVC $(CPPFLAGS) $(INCLUDE) $< -c -o $@
 	
 clean:
-	rm -f $(OBJECTS) $(LIBOBJECTS) $(EXECUTABLE) $(LIB)
+	rm -f $(OBJECTS) $(LIBOBJECTS) $(BIN) $(LIB)
 
