@@ -33,7 +33,6 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <OutDir>$(SolutionDir)\targets\win32\x86\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -41,7 +40,6 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <OutDir>$(SolutionDir)\targets\win32\x86\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Sample|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -56,6 +54,13 @@
   <PropertyGroup>
     <IntDir>$(SolutionDir)\build\Win32-$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'!='Sample'" Label="Configuration">
+    <OutDir>$(SolutionDir)\lib\win32\x86\</OutDir>
+	<TargetName>lib$(ProjectName)</TargetName>			
+  </PropertyGroup> 
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+	<TargetName>lib$(ProjectName)d</TargetName>			
+  </PropertyGroup>   
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
