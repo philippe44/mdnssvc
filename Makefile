@@ -26,7 +26,6 @@ LIBOBJECTS = $(patsubst %.c,$(BUILDDIR)/lib/%.o,$(SOURCES))
 all: directory $(BIN) $(LIB)
 
 $(BIN): $(OBJECTS)
-	echo $(BIN)
 	$(CC) $(OBJECTS) $(LIBRARY) $(LDFLAGS) -o $@
 
 $(LIB): $(LIBOBJECTS)
