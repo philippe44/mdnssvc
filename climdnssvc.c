@@ -239,11 +239,7 @@ static void sighandler(int signum) {
 /*---------------------------------------------------------------------------*/
 /*																			 */
 /*---------------------------------------------------------------------------*/
-#ifdef MDNS_SVC
-int mdns_server(int argc, char *argv[]) {
-#else
 int main(int argc, char *argv[]) {
-#endif
 	char type[255];
 	int port;
 	const char **txt;

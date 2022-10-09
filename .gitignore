@@ -59,3 +59,4 @@ lib/
 .vs/
 *.idb
 *.user
+*.pdb
