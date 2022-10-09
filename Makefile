@@ -22,7 +22,8 @@ SOURCES = mdns.c mdnsd.c
 		
 OBJECTS = $(SOURCES:%.c=$(BUILDDIR)/%.o) 
 
-all: directory $(BIN) $(LIB)
+all: directory $(BIN) lib
+lib: directory $(LIB)
 
 $(BIN): $(BUILDDIR)/climdnssvc.o $(LIB)
 	$(CC) $^ $(LIBRARY) $(LDFLAGS) -o $@
@@ -38,6 +39,8 @@ directory:
 $(BUILDDIR)/%.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -c -o $@
 
-clean:
-	rm -f $(BUILDDIR)/*.o $(BIN) $(LIB)
+cleanlib:
+	rm -f $(BUILDDIR)/*.o $(BIN) 
 
+clean: cleanlib
+	rm -f $(BIN)
