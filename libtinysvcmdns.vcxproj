@@ -36,11 +36,9 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <PropertyGroup>
-    <IntDir>$(SolutionDir)\build\Win32-$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <OutDir>lib\win32\$(PlatformTarget)\</OutDir>
+    <OutDir>$(SolutionDir)\lib\win32\$(PlatformTarget)\</OutDir>
+    <IntDir>$(SolutionDir)\build\Win32-$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>	
 	<TargetName>$(ProjectName)-$(Configuration)</TargetName>
   </PropertyGroup>
   <ImportGroup Label="ExtensionSettings">
