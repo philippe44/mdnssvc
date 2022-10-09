@@ -40,7 +40,7 @@ $(BUILDDIR)/%.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -c -o $@
 
 cleanlib:
-	rm -f $(BUILDDIR)/*.o $(BIN) 
+	rm -f $(BUILDDIR)/*.o $(LIB) 
 
 clean: cleanlib
 	rm -f $(BIN)
