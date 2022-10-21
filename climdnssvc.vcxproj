@@ -18,7 +18,7 @@
     <ClCompile Include="climdnssvc.c" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="lib\win32\x86\libtinysvcmdns-$(Configuration).lib" />
+    <Library Include="lib\win32\x86\libmdnssvc-$(Configuration).lib" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

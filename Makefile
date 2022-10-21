@@ -6,13 +6,21 @@ PLATFORM ?= $(firstword $(subst -, ,$(CC)))
 HOST ?= $(word 2, $(subst -, ,$(CC)))
 
 SRC 		= .
-BIN			= bin/climdnssvc-$(PLATFORM)
-LIB			= lib/$(HOST)/$(PLATFORM)/libtinysvcmdns.a
-BUILDDIR	= build/$(PLATFORM)
+BIN		= bin/climdnssvc-$(HOST)-$(PLATFORM)
+LIB		= lib/$(HOST)/$(PLATFORM)/libtinysvcmdns.a
+BUILDDIR	= build/$(HOST)/$(PLATFORM)
 
-DEFINES  = -DNDEBUG
-CFLAGS  += -Wall -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation -fPIC -ggdb -O2 $(DEFINES) -fdata-sections -ffunction-sections 
-LDFLAGS += -s -lpthread -ldl -lm -lrt -L. 
+DEFINES  = -DNDEBUG 
+CFLAGS  += -Wall -fPIC -O2 $(DEFINES) -ggdb -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation -fdata-sections -ffunction-sections
+LDFLAGS += -s -lpthread -ldl -lm -L. 
+
+#ifeq ($(HOST),apple)
+#CFLAGS  += -mmacosx-version-min=10.9
+#LDFLAGS +=
+#else
+#CFLAGS  += -ggdb -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation -fdata-sections -ffunction-sections
+#LDFLAGS += -s
+#endif
 
 vpath %.c $(SRC)
 
@@ -27,13 +35,13 @@ lib: directory $(LIB)
 directory:
 	@mkdir -p bin
 	@mkdir -p lib/$(HOST)/$(PLATFORM)	
-	@mkdir -p $(BUILDDIR)/lib
+	@mkdir -p $(BUILDDIR)
 
 $(BIN): $(BUILDDIR)/climdnssvc.o  $(LIB)
-	$(CC) $^ $(LIBRARY) $(LDFLAGS) -o $@
+	$(CC) $^ $(LDFLAGS) -o $@
 	
 $(LIB): $(OBJECTS)
-	$(AR) rcs $@ $^
+	$(AR) -rcs $@ $^
 
 $(BUILDDIR)/%.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(INCLUDE) $< -c -o $@

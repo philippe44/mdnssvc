@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtinysvcmdns", "libtinysvcmdns.vcxproj", "{4CB44756-1759-4CC2-B979-BE4E045AB140}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmdnssvc", "libmdnssvc.vcxproj", "{4CB44756-1759-4CC2-B979-BE4E045AB140}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "climdnssvc", "climdnssvc.vcxproj", "{8F0D9E3E-E6EC-4086-8334-8F6436852561}"
 	ProjectSection(ProjectDependencies) = postProject
