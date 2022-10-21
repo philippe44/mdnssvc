@@ -7,7 +7,7 @@ HOST ?= $(word 2, $(subst -, ,$(CC)))
 
 SRC 		= .
 BIN		= bin/climdnssvc-$(HOST)-$(PLATFORM)
-LIB		= lib/$(HOST)/$(PLATFORM)/libtinysvcmdns.a
+LIB		= lib/$(HOST)/$(PLATFORM)/libmdnssvc.a
 BUILDDIR	= build/$(HOST)/$(PLATFORM)
 
 DEFINES  = -DNDEBUG 
