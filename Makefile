@@ -14,14 +14,6 @@ DEFINES  = -DNDEBUG
 CFLAGS  += -Wall -fPIC -O2 $(DEFINES) -ggdb -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation -fdata-sections -ffunction-sections
 LDFLAGS += -s -lpthread -ldl -lm -L. 
 
-#ifeq ($(HOST),apple)
-#CFLAGS  += -mmacosx-version-min=10.9
-#LDFLAGS +=
-#else
-#CFLAGS  += -ggdb -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation -fdata-sections -ffunction-sections
-#LDFLAGS += -s
-#endif
-
 vpath %.c $(SRC)
 
 INCLUDE = -I$(SRC) 
