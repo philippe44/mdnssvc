@@ -53,6 +53,7 @@ typedef uint32_t in_addr_t;
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <strings.h>
+#include <ifaddrs.h>
 #if defined (__FreeBSD__) || defined (sun)
 #include <ifaddrs.h>
 #include <net/if_dl.h>
@@ -92,9 +93,9 @@ static void winsock_close(void) {
 }
 #endif
 
+/*---------------------------------------------------------------------------*/
+bool get_interface(struct in_addr* addr) {
 #ifdef _WIN32
-bool get_interface(struct in_addr* addr)
-{
 	struct sockaddr_in* host = NULL;
 	ULONG size = sizeof(IP_ADAPTER_ADDRESSES) * 32;
 	IP_ADAPTER_ADDRESSES* adapters = (IP_ADAPTER_ADDRESSES*)malloc(size);
@@ -115,43 +116,27 @@ bool get_interface(struct in_addr* addr)
 
 	addr->S_un.S_addr = INADDR_ANY;
 	return false;
-}
 #else
-bool get_interface(struct in_addr* addr)
-{
-	struct ifreq* ifreq;
-	struct ifconf ifconf;
-	char buf[512];
-	unsigned i, nb;
-	int fd;
 	bool valid = false;
+	struct ifaddrs *ifaddr;
+	
+	if (getifaddrs(&ifaddr) == -1) 	return false;
 
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
+	for (struct ifaddrs* ifa = ifaddr; ifa != NULL && !valid; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr == NULL || ifa->ifa_addr->sa_family != AF_INET ||
+		    !(ifa->ifa_flags & IFF_UP) || !(ifa->ifa_flags & IFF_MULTICAST) ||
+		    ifa->ifa_flags & IFF_LOOPBACK)
+		continue;
 
-	ifconf.ifc_len = sizeof(buf);
-	ifconf.ifc_buf = buf;
-
-	if (ioctl(fd, SIOCGIFCONF, &ifconf) != 0) return false;
-
-	ifreq = ifconf.ifc_req;
-	nb = ifconf.ifc_len / sizeof(struct ifreq);
-
-	for (i = 0; i < nb; i++) {
-		ioctl(fd, SIOCGIFFLAGS, &ifreq[i]);
-		//!(ifreq[i].ifr_flags & IFF_POINTTOPOINT);
-		if ((ifreq[i].ifr_flags & IFF_UP) &&
-			!(ifreq[i].ifr_flags & IFF_LOOPBACK) &&
-			ifreq[i].ifr_flags & IFF_MULTICAST) {
-			*addr = ((struct sockaddr_in*)&(ifreq[i].ifr_addr))->sin_addr;
-			valid = true;
-			break;
-		}
+		*addr = ((struct sockaddr_in*) ifa->ifa_addr)->sin_addr;
+		valid = true;
+		break;
 	}
 
-	close(fd);
+	freeifaddrs(ifaddr);
 	return valid;
-}
 #endif
+}
 
 #ifdef _WIN32
 /*----------------------------------------------------------------------------*/
