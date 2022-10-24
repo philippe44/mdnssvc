@@ -78,14 +78,13 @@ struct mdns_service *svc;
 struct mdnsd *svr;
 
 /*---------------------------------------------------------------------------*/
-#ifdef WIN32
+#ifdef _WIN32
 static void winsock_init(void) {
 	WSADATA wsaData;
 	WORD wVersionRequested = MAKEWORD(2, 2);
 	int WSerr = WSAStartup(wVersionRequested, &wsaData);
 	if (WSerr != 0) exit(1);
 }
-
 
 /*---------------------------------------------------------------------------*/
 static void winsock_close(void) {
@@ -94,49 +93,62 @@ static void winsock_close(void) {
 #endif
 
 /*---------------------------------------------------------------------------*/
-bool get_interface(struct in_addr* addr) {
+struct in_addr get_interface(char* iface) {
+	struct in_addr addr;
+
+	// try to get the address from the parameter
+	addr.s_addr = iface && *iface ? inet_addr(iface) : INADDR_NONE;
+
+	// if we already are given an address; just use it
+	if (addr.s_addr != INADDR_NONE)  return addr;
 #ifdef _WIN32
 	struct sockaddr_in* host = NULL;
 	ULONG size = sizeof(IP_ADAPTER_ADDRESSES) * 32;
+
+	// otherwise we need to loop and find somethign that works
 	IP_ADAPTER_ADDRESSES* adapters = (IP_ADAPTER_ADDRESSES*)malloc(size);
 	int ret = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_INCLUDE_GATEWAYS | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_ANYCAST, 0, adapters, &size);
 
-	for (PIP_ADAPTER_ADDRESSES adapter = adapters; adapter && !host; adapter = adapter->Next) {
-		if (adapter->TunnelType == TUNNEL_TYPE_TEREDO) continue;
-		if (adapter->OperStatus != IfOperStatusUp) continue;
+	for (PIP_ADAPTER_ADDRESSES adapter = adapters; adapter; adapter = adapter->Next) {
+		if (adapter->TunnelType == TUNNEL_TYPE_TEREDO ||
+			adapter->OperStatus != IfOperStatusUp || 0)
+			continue;
+
+		char name[256];
+		wcstombs(name, adapter->FriendlyName, sizeof(name));
+		if (iface && *iface && strcasecmp(iface, name)) continue;
 
 		for (IP_ADAPTER_UNICAST_ADDRESS* unicast = adapter->FirstUnicastAddress; unicast;
 			unicast = unicast->Next) {
 			if (adapter->FirstGatewayAddress && unicast->Address.lpSockaddr->sa_family == AF_INET) {
-				*addr = ((struct sockaddr_in*)unicast->Address.lpSockaddr)->sin_addr;
-				return true;
+				addr = ((struct sockaddr_in*)unicast->Address.lpSockaddr)->sin_addr;
+				return addr;
 			}
 		}
 	}
 
-	addr->S_un.S_addr = INADDR_ANY;
-	return false;
+	return addr;
 #else
-	bool valid = false;
-	struct ifaddrs *ifaddr;
-	
-	if (getifaddrs(&ifaddr) == -1) 	return false;
+	struct ifaddrs* ifaddr;
 
-	for (struct ifaddrs* ifa = ifaddr; ifa != NULL && !valid; ifa = ifa->ifa_next) {
+	if (getifaddrs(&ifaddr) == -1) 	return addr;
+
+	for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
 		if (ifa->ifa_addr == NULL || ifa->ifa_addr->sa_family != AF_INET ||
-		    !(ifa->ifa_flags & IFF_UP) || !(ifa->ifa_flags & IFF_MULTICAST) ||
-		    ifa->ifa_flags & IFF_LOOPBACK)
-		continue;
+			!(ifa->ifa_flags & IFF_UP) || !(ifa->ifa_flags & IFF_MULTICAST) ||
+			ifa->ifa_flags & IFF_LOOPBACK ||
+			(iface && *iface && strcasecmp(iface, ifa->ifa_name)))
+			continue;
 
-		*addr = ((struct sockaddr_in*) ifa->ifa_addr)->sin_addr;
-		valid = true;
+		addr = ((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
 		break;
 	}
 
 	freeifaddrs(ifaddr);
-	return valid;
+		return addr;
 #endif
 }
+
 
 #ifdef _WIN32
 /*----------------------------------------------------------------------------*/
@@ -160,13 +172,13 @@ int asprintf(char** strp, const char* fmt, ...)
 
 /*---------------------------------------------------------------------------*/
 static void print_usage(void) {
-	printf("[-o <ip>] -i <identity> -t <type> -p <port> [<txt>] ...[<txt>]\n");
+	printf("[-o <ip|ifname>] -i <identity> -t <type> -p <port> [<txt>] ...[<txt>]\n");
 }
 
 /*---------------------------------------------------------------------------*/
 static void sighandler(int signum) {
 	mdnsd_stop(svr);
-#ifdef WIN32
+#ifdef _WIN32
 	winsock_close();
 #endif
 	exit(0);
@@ -186,7 +198,7 @@ int main(int argc, char *argv[]) {
 		exit(0);
 	}
 
-#ifdef WIN32
+#ifdef _WIN32
 	winsock_init();
 #endif
 
@@ -228,7 +240,7 @@ int main(int argc, char *argv[]) {
 
 	gethostname(hostname, sizeof(hostname));
 	strcat(hostname, ".local");
-	get_interface(&host);
+	host = get_interface(NULL);
 
 	svr = mdnsd_start(host);
 	if (svr) {
@@ -252,7 +264,7 @@ int main(int argc, char *argv[]) {
 	free(type);
 	free(txt);
 
-#ifdef WIN32
+#ifdef _WIN32
 	winsock_close();
 #endif
 
