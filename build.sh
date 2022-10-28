@@ -10,7 +10,7 @@ declare -A alias=( [x86-linux-gnu-gcc]=i686-stretch-linux-gnu-gcc \
 				   [aarch64-linux-gnu-gcc]=aarch64-stretch-linux-gnu-gcc \
 				   [sparc64-linux-gnu-gcc]=sparc64-stretch-linux-gnu-gcc \
 				   [mips-linux-gnu-gcc]=mips-stretch-linux-gnu-gcc \
-				   [x86_64-macos-darwin-gcc]=x86_64-apple-darwin19-gcc \				   
+				   [x86_64-macos-darwin-gcc]=x86_64-apple-darwin19-gcc \
 				   [x86_64-freebsd-gnu-gcc]=x86_64-cross-freebsd12.3-gcc \
 				   [x86_64-solaris-gnu-gcc]=x86_64-cross-solaris2.x-gcc )
 
