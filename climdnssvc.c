@@ -45,7 +45,7 @@
 typedef uint32_t in_addr_t;
 #define strcasecmp stricmp
 
-#elif defined (linux) || defined (__FreeBSD__) || defined (sun)
+#elif defined (__linux__) || defined (__FreeBSD__) || defined (sun)
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netdb.h>
