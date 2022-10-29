@@ -30,7 +30,7 @@ directory:
 	@mkdir -p $(BUILDDIR)
 
 $(BIN): $(BUILDDIR)/climdnssvc.o  $(LIB)
-	$(CC) $^ $(LDFLAGS) -o $@
+	$(CC) $^ $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o $@
 	
 $(LIB): $(OBJECTS)
 	$(AR) -rcs $@ $^
