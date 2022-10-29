@@ -1,12 +1,12 @@
 #!/bin/bash
 
-list="x86_64-linux-gnu-gcc x86-linux-gnu-gcc armhf-linux-gnueabi-gcc aarch64-linux-gnu-gcc \
+list="x86_64-linux-gnu-gcc x86-linux-gnu-gcc arm-linux-gnueabi-gcc aarch64-linux-gnu-gcc \
       sparc64-linux-gnu-gcc mipsel-linux-gnu-gcc powerpc-linux-gnu-gcc x86_64-macos-darwin-gcc \
 	  x86_64-freebsd-gnu-gcc x86_64-solaris-gnu-gcc"
 
 declare -A alias=( [x86-linux-gnu-gcc]=i686-stretch-linux-gnu-gcc \
 				   [x86_64-linux-gnu-gcc]=x86_64-stretch-linux-gnu-gcc \
-				   [armhf-linux-gnueabi-gcc]=armv7-stretch-linux-gnueabi-gcc \
+				   [arm-linux-gnueabi-gcc]=armv7-stretch-linux-gnueabi-gcc \
 				   [aarch64-linux-gnu-gcc]=aarch64-stretch-linux-gnu-gcc \
 				   [sparc64-linux-gnu-gcc]=sparc64-stretch-linux-gnu-gcc \
 				   [mipsel-linux-gnu-gcc]=mips64el-stretch-linux-gnu-gcc \
