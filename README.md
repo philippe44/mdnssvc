@@ -1,6 +1,6 @@
 # Introduction
 This is a fork from https://bitbucket.org/geekman/tinysvcmdns. It works under
-Windows, OSX, and Linux (x86, x86_64, arm and aarch64) and with VisualStudio.
+Windows, MacOS, and Linux (x86, x86_64, arm and aarch64), FreeBSD and Solaris.
 
 I've added a function to stop a registered service, send bye-bye packet and 
 properly release all allocated memory.
