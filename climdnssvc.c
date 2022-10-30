@@ -55,7 +55,6 @@ typedef uint32_t in_addr_t;
 #include <strings.h>
 #include <ifaddrs.h>
 #if defined (__FreeBSD__) || defined (sun)
-#include <ifaddrs.h>
 #include <net/if_dl.h>
 #include <net/if_types.h>
 #endif
@@ -190,7 +189,7 @@ static void sighandler(int signum) {
 int main(int argc, char *argv[]) {
 	const char** txt = NULL;
 	struct in_addr host;
-	char hostname[256],* arg, * identity = NULL, * type = NULL;
+	char hostname[256],* arg, * identity = NULL, * type = NULL, * addr = NULL;
 	int port = 0;
 
 	if (argc <= 2) {
@@ -216,7 +215,7 @@ int main(int argc, char *argv[]) {
 
 	while ((arg = *++argv) != NULL) {
 		if (!strcasecmp(arg, "-o") || !strcasecmp(arg, "host")) {
-			host.s_addr = inet_addr(*++argv);
+			addr = *++argv;
 			argc -= 2;
 		} else if (!strcasecmp(arg, "-p")) {
 			port = atoi(*++argv);
@@ -240,7 +239,7 @@ int main(int argc, char *argv[]) {
 
 	gethostname(hostname, sizeof(hostname));
 	strcat(hostname, ".local");
-	host = get_interface(NULL);
+	host = get_interface(addr);
 
 	svr = mdnsd_start(host);
 	if (svr) {
