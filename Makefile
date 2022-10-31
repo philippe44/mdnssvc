@@ -2,6 +2,10 @@ ifeq ($(CC),cc)
 CC=$(lastword $(subst /, ,$(shell readlink -f `which cc`)))
 endif
 
+ifeq ($(findstring gcc,$(CC)),gcc)
+CFLAGS  += -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation
+endif
+
 PLATFORM ?= $(firstword $(subst -, ,$(CC)))
 HOST ?= $(word 2, $(subst -, ,$(CC)))
 
@@ -11,7 +15,7 @@ LIB		= lib/$(HOST)/$(PLATFORM)/libmdnssvc.a
 BUILDDIR	= build/$(HOST)/$(PLATFORM)
 
 DEFINES  = -DNDEBUG 
-CFLAGS  += -Wall -fPIC -O2 $(DEFINES) -ggdb -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation -fdata-sections -ffunction-sections
+CFLAGS  += -Wall -fPIC -O2 $(DEFINES) -ggdb -fdata-sections -ffunction-sections
 LDFLAGS += -s -lpthread -ldl -lm -L. 
 
 vpath %.c $(SRC)
