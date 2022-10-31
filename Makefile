@@ -4,6 +4,8 @@ endif
 
 ifeq ($(findstring gcc,$(CC)),gcc)
 CFLAGS  += -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation
+else
+CFLAGS += -fno-temp-file	
 endif
 
 PLATFORM ?= $(firstword $(subst -, ,$(CC)))
