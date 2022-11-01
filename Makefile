@@ -15,7 +15,7 @@ HOST ?= $(word 2, $(subst -, ,$(CC)))
 SRC 		= .
 BIN		= bin/climdnssvc-$(HOST)-$(PLATFORM)
 LIB		= lib/$(HOST)/$(PLATFORM)/libmdnssvc.a
-BUILDDIR	= build/$(HOST)/$(PLATFORM)
+BUILDDIR	= bin/$(HOST)/$(PLATFORM)
 
 DEFINES  = -DNDEBUG 
 CFLAGS  += -Wall -fPIC -O2 $(DEFINES) -ggdb -fdata-sections -ffunction-sections
@@ -32,7 +32,6 @@ OBJECTS = $(SOURCES:%.c=$(BUILDDIR)/%.o)
 all: lib $(BIN)
 lib: directory $(LIB)
 directory:
-	@mkdir -p bin
 	@mkdir -p lib/$(HOST)/$(PLATFORM)	
 	@mkdir -p $(BUILDDIR)
 
