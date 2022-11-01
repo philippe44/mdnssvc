@@ -4,6 +4,7 @@ endif
 
 ifeq ($(findstring gcc,$(CC)),gcc)
 CFLAGS  += -Wno-stringop-truncation -Wno-stringop-overflow -Wno-format-truncation
+LDFLAGS += -s
 else
 CFLAGS += -fno-temp-file	
 endif
@@ -18,7 +19,7 @@ BUILDDIR	= build/$(HOST)/$(PLATFORM)
 
 DEFINES  = -DNDEBUG 
 CFLAGS  += -Wall -fPIC -O2 $(DEFINES) -ggdb -fdata-sections -ffunction-sections
-LDFLAGS += -s -lpthread -ldl -lm -L. 
+LDFLAGS += -lpthread -ldl -lm -L. 
 
 vpath %.c $(SRC)
 
