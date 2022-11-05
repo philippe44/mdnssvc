@@ -150,6 +150,7 @@ static int create_recv_sock(uint32_t host) {
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_port = htons(MDNS_PORT);
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);	/* receive multicast */
+
 	if ((r = bind(sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0) {
 		log_message(LOG_ERR, "recv bind(): %m");
 		return r;
