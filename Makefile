@@ -13,9 +13,10 @@ PLATFORM ?= $(firstword $(subst -, ,$(CC)))
 HOST ?= $(word 2, $(subst -, ,$(CC)))
 
 SRC 		= .
-BIN		= bin/climdnssvc-$(HOST)-$(PLATFORM)
-LIB		= lib/$(HOST)/$(PLATFORM)/libmdnssvc.a
-BUILDDIR	= bin/$(HOST)/$(PLATFORM)
+CORE       = bin/climdnssvc-$(HOST)
+BUILDDIR   = $(dir $(CORE))$(HOST)/$(PLATFORM)
+LIB	       = lib/$(HOST)/$(PLATFORM)/libmdnssvc.a
+EXECUTABLE = $(CORE)-$(PLATFORM)
 
 DEFINES  = -DNDEBUG 
 CFLAGS  += -Wall -fPIC -O2 $(DEFINES) -ggdb -fdata-sections -ffunction-sections
@@ -29,14 +30,18 @@ SOURCES = mdns.c mdnsd.c
 		
 OBJECTS = $(SOURCES:%.c=$(BUILDDIR)/%.o) 
 
-all: lib $(BIN)
+all: lib $(EXECUTABLE)
 lib: directory $(LIB)
 directory:
 	@mkdir -p lib/$(HOST)/$(PLATFORM)	
 	@mkdir -p $(BUILDDIR)
 
-$(BIN): $(BUILDDIR)/climdnssvc.o  $(LIB)
+$(EXECUTABLE): $(BUILDDIR)/climdnssvc.o  $(LIB)
 	$(CC) $^ $(CFLAGS) $(LDFLAGS) -o $@
+ifeq ($(HOST),macos)
+	rm -f $(CORE)
+	lipo -create -output $(CORE) $$(ls $(CORE)* | grep -v '\-static')
+endif	
 	
 $(LIB): $(OBJECTS)
 	$(AR) -rcs $@ $^
@@ -48,4 +53,4 @@ cleanlib:
 	rm -f $(BUILDDIR)/*.o $(LIB) 
 
 clean: cleanlib
-	rm -f $(BIN)
+	rm -f $(EXECUTABLE) $(CORE)

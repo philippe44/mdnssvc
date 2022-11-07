@@ -62,7 +62,7 @@ do
 	export CFLAGS=${cflags[$cc]}
 	CC=${alias[$cc]:-$cc}
 	
-	make AR=${CC%-*}-ar CC=$CC PLATFORM=$platform HOST=$host $clean
+	make AR=${CC%-*}-ar CC=$CC PLATFORM=$platform HOST=$host $clean -j8
 	if [[ -n $clean ]]; then
 		continue
 	fi
