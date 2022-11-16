@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #ifdef _WIN32
 #include <winsock.h>
@@ -53,11 +54,10 @@
 #define DEFAULT_TTL 4500
 
 #ifndef NDEBUG
-  #define DEBUG_PRINTF(...) printf(__VA_ARGS__)
+#define DEBUG_PRINTF(fmt, ...) mdnsd_log(false, fmt, ##__VA_ARGS__)
 #else
-  #define DEBUG_PRINTF(...) ((void) 0)
+#define DEBUG_PRINTF(...) ((void) 0)
 #endif
-
 
 struct rr_data_srv {
 	uint16_t priority;
@@ -168,6 +168,8 @@ struct mdns_pkt {
 	struct rr_list *rr_auth;	// authority RRs
 	struct rr_list *rr_add;		// additional RRs
 };
+
+void mdnsd_log(bool force, char* fmt, ...);
 
 struct mdns_pkt *mdns_parse_pkt(uint8_t *pkt_buf, size_t pkt_len);
 

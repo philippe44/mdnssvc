@@ -171,7 +171,7 @@ int asprintf(char** strp, const char* fmt, ...)
 
 /*---------------------------------------------------------------------------*/
 static void print_usage(void) {
-	printf("[-o <ip|ifname>] -i <identity> -t <type> -p <port> [<txt>] ...[<txt>]\n");
+	printf("[-v] [-o <ip|ifname>] -i <identity> -t <type> -p <port> [<txt>] ...[<txt>]\n");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -191,6 +191,7 @@ int main(int argc, char *argv[]) {
 	struct in_addr host;
 	char hostname[256],* arg, * identity = NULL, * type = NULL, * addr = NULL;
 	int port = 0;
+	bool verbose = false;
 
 	if (argc <= 2) {
 		print_usage();
@@ -219,6 +220,8 @@ int main(int argc, char *argv[]) {
 			argc -= 2;
 		} else if (!strcasecmp(arg, "-p")) {
 			port = atoi(*++argv);
+		} else if (!strcasecmp(arg, "-v")) {
+			verbose = true;
 		} else if (!strcasecmp(arg, "-t")) {
 			(void)! asprintf(&type, "%s.local", *++argv);
 		} else if (!strcasecmp(arg, "-i")) {
@@ -241,7 +244,7 @@ int main(int argc, char *argv[]) {
 	strcat(hostname, ".local");
 	host = get_interface(addr);
 
-	svr = mdnsd_start(host);
+	svr = mdnsd_start(host, verbose);
 	if (svr) {
 		printf("host: %s\nidentity: %s\ntype: %s\nip: %s\nport: %u\n", hostname, identity, type, inet_ntoa(host), port);
 

@@ -29,7 +29,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#define LOG_ERR 3
+#define LOG_ERR		3
 #else
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -79,6 +79,8 @@
 #define SERVICES_DNS_SD_NLABEL \
 		((uint8_t *) "\x09_services\x07_dns-sd\x04_udp\x05local")
 
+#define log_message(l,f,...) mdnsd_log(true, f, ##__VA_ARGS__)
+
 struct mdnsd {
 #ifdef USE_WIN32_THREAD
 	HANDLE data_lock;
@@ -100,19 +102,26 @@ struct mdns_service {
 	struct rr_list *entries;
 };
 
+static bool log_verbose;
+
 /////////////////////////////////
 
+void mdnsd_log(bool force, char* fmt, ...) {
+	if (force || log_verbose) {
+		va_list ap;
+		va_start(ap, fmt);
+	
+		int size = vsnprintf(NULL, 0, fmt, ap);
 
-static void log_message(int loglevel, char *fmt_str, ...) {
-	va_list ap;
-	char buf[2048];
+		if (size > 0) {
+			char* buf = malloc(size + 1);
+			vsprintf(buf, fmt, ap);
+			fprintf(stderr, "%s", buf);
+			free(buf);
+		}
 
-	va_start(ap, fmt_str);
-	vsnprintf(buf, 2047, fmt_str, ap);
-	va_end(ap);
-	buf[2047] = 0;
-
-	fprintf(stderr, "%s\n", buf);
+		va_end(ap);
+	}
 }
 
 static int create_recv_sock(uint32_t host) {
@@ -125,12 +134,12 @@ static int create_recv_sock(uint32_t host) {
 	unsigned char ttl = 255;
 
 	if (sd < 0) {
-		log_message(LOG_ERR, "recv socket(): %m");
+		log_message(LOG_ERR, "recv socket(): %m\n");
 		return sd;
 	}
 
 	if ((r = setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on))) < 0) {
-		log_message(LOG_ERR, "recv setsockopt(SO_REUSEADDR): %m");
+		log_message(LOG_ERR, "recv setsockopt(SO_REUSEADDR): %m\n");
 		return r;
 	}
 
@@ -140,7 +149,7 @@ static int create_recv_sock(uint32_t host) {
   if (!getsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, &len)) {
     on = 1;
 	if ((r = setsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, sizeof(on))) < 0) {
-		log_message(LOG_ERR, "recv setsockopt(SO_REUSEPORT): %m", r);
+		log_message(LOG_ERR, "recv setsockopt(SO_REUSEPORT): %m\n", r);
 	}
   }
 #endif
@@ -152,32 +161,32 @@ static int create_recv_sock(uint32_t host) {
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);	/* receive multicast */
 
 	if ((r = bind(sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr))) < 0) {
-		log_message(LOG_ERR, "recv bind(): %m");
+		log_message(LOG_ERR, "recv bind(): %m\n");
 		return r;
 	}
 
 	memset(&mreq, 0, sizeof(struct ip_mreq));
 	mreq.imr_interface.s_addr = host;
 	if ((r = setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, (char*) &mreq.imr_interface.s_addr, sizeof(mreq.imr_interface.s_addr))) < 0)  {
-		log_message(LOG_ERR, "recv setsockopt(IP_PROTO_IP): %m");
+		log_message(LOG_ERR, "recv setsockopt(IP_PROTO_IP): %m\n");
 		return r;
 	}
 
 	if ((r = setsockopt(sd, IPPROTO_IP, IP_MULTICAST_TTL, (void*) &ttl, sizeof(ttl))) < 0) {
-		log_message(LOG_ERR, "recv setsockopt(IP_MULTICAST_IP): %m");
+		log_message(LOG_ERR, "recv setsockopt(IP_MULTICAST_IP): %m\n");
 		return r;
 	}
 
 	// add membership to receiving socket
 	mreq.imr_multiaddr.s_addr = inet_addr(MDNS_ADDR);
 	if ((r = setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &mreq, sizeof(mreq))) < 0) {
-		log_message(LOG_ERR, "recv setsockopt(IP_ADD_MEMBERSHIP): %m");
+		log_message(LOG_ERR, "recv setsockopt(IP_ADD_MEMBERSHIP): %m\n");
 		return r;
 	}
 
 	// enable loopback in case someone else needs the data
 	if ((r = setsockopt(sd, IPPROTO_IP, IP_MULTICAST_LOOP, (char *) &onChar, sizeof(onChar))) < 0) {
-		log_message(LOG_ERR, "recv setsockopt(IP_MULTICAST_LOOP): %m");
+		log_message(LOG_ERR, "recv setsockopt(IP_MULTICAST_LOOP): %m\n");
 		return r;
 	}
 
@@ -185,7 +194,7 @@ static int create_recv_sock(uint32_t host) {
 #ifdef IP_PKTINFO
 	on = 1;
 	if ((r = setsockopt(sd, IPPROTO_IP, IP_PKTINFO, (char *) &on, sizeof(on))) < 0) {
-		log_message(LOG_ERR, "recv setsockopt(IP_PKTINFO): %m");
+		log_message(LOG_ERR, "recv setsockopt(IP_PKTINFO): %m\n");
 		return r;
 	}
 #endif
@@ -484,7 +493,7 @@ static void main_loop(struct mdnsd *svr) {
 			ssize_t recvsize = recvfrom(svr->sockfd, pkt_buffer, PACKET_SIZE, 0,
 				(struct sockaddr *) &fromaddr, &sockaddr_size);
 			if (recvsize < 0) {
-				log_message(LOG_ERR, "recv(): %m");
+				log_message(LOG_ERR, "recv(): %m\n");
 			}
 
 			DEBUG_PRINTF("data from=%s size=%ld\n", inet_ntoa(fromaddr.sin_addr), (long) recvsize);
@@ -772,11 +781,13 @@ void mdns_service_destroy(struct mdns_service *srv) {
 	free(srv);
 }
 
-struct mdnsd *mdnsd_start(struct in_addr host) {
+struct mdnsd *mdnsd_start(struct in_addr host, bool verbose) {
 #ifndef USE_WIN32_THREAD
 	pthread_t tid;
 	pthread_attr_t attr;
 #endif
+
+	log_verbose = verbose;
 
 	struct mdnsd *server = malloc(sizeof(struct mdnsd));
 	memset(server, 0, sizeof(struct mdnsd));
@@ -789,7 +800,7 @@ struct mdnsd *mdnsd_start(struct in_addr host) {
 
 	server->sockfd = create_recv_sock(host.s_addr);
 	if (server->sockfd < 0) {
-		log_message(LOG_ERR, "unable to create recv socket");
+		log_message(LOG_ERR, "unable to create recv socket\n");
 		free(server);
 		return NULL;
 	}

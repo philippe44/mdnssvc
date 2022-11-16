@@ -30,6 +30,7 @@
 #define __TINYSVCMDNS_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 #ifdef _WIN32
 #include <inaddr.h>
 #else
@@ -46,7 +47,7 @@ struct mdns_service;
 
 // starts a MDNS responder instance
 // returns NULL if unsuccessful
-struct mdnsd *mdnsd_start(struct in_addr host);
+struct mdnsd *mdnsd_start(struct in_addr host, bool verbose);
 
 // stops the given MDNS responder instance
 void mdnsd_stop(struct mdnsd *s);
