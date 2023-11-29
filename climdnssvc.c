@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
 		} else if (!strcasecmp(arg, "-i")) {
 			identity = *++argv;
 		} else {
-			// nothing let's try to be smart and handle legacy crappy		
+			// nothing let's try to be smart and handle legacy crap		
 			if (!identity) identity = *argv;
 			else if (!type) (void) !asprintf(&type, "%s.local", *argv);
 			else if (!port) port = atoi(*argv);
@@ -235,6 +235,7 @@ int main(int argc, char *argv[]) {
 				txt = (const char**) malloc((argc + 1) * sizeof(char**));
 				memcpy(txt, argv, argc * sizeof(char**));
 				txt[argc] = NULL;
+				break;
 			}
 			argc--;
 		}
@@ -250,13 +251,14 @@ int main(int argc, char *argv[]) {
 
 		mdnsd_set_hostname(svr, hostname, host);
 		svc = mdnsd_register_svc(svr, identity, type, port, NULL, txt);
-		mdns_service_destroy(svc);
+		// mdns_service_destroy(svc);
 
 #ifdef _WIN32
 		Sleep(INFINITE);
 #else
 		pause();
 #endif
+		mdns_service_remove(svr, svc);
 		mdnsd_stop(svr);
 	} else {
 		printf("Can't start server");
@@ -264,7 +266,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	free(type);
-	free(txt);
+	if (txt) free(txt);
 
 #ifdef _WIN32
 	winsock_close();
