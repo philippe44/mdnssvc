@@ -144,11 +144,10 @@ static int create_recv_sock(uint32_t host) {
 	}
 
 #if !defined(_WIN32)
-  on = sizeof(on);
-  socklen_t len;
-  if (!getsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, &len)) {
+  socklen_t len = sizeof(on);
+  if (!getsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &on, &len)) {
     on = 1;
-	if ((r = setsockopt(sd, SOL_SOCKET, SO_REUSEPORT,(char*) &on, sizeof(on))) < 0) {
+	if ((r = setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on))) < 0) {
 		log_message(LOG_ERR, "recv setsockopt(SO_REUSEPORT): %m\n", r);
 	}
   }
