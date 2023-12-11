@@ -842,7 +842,11 @@ void mdnsd_stop(struct mdnsd *s) {
 	write_pipe(s->notify_pipe[1], ".", 1);
 
 	while (s->stop_flag != 2)
+#ifdef WIN32
+		Sleep(tv.tv_usec / 1000);
+#else
 		select(0, NULL, NULL, NULL, &tv);
+#endif
 
 	close_pipe(s->notify_pipe[0]);
 	close_pipe(s->notify_pipe[1]);
